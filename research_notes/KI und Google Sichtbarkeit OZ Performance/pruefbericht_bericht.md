@@ -200,3 +200,75 @@ Jeweils Passage, fehlende Einschränkung laut ki_suche_geo.md und google_seo_con
 - "Brückenseiten" steht in der Tabelle "Firmendaten bereinigen", erklärt wird das Wort erst drei Abschnitte später. Erklärung an die erste Stelle ziehen.
 - Unerklärt bleiben "Suchindex/Index" (trägt den ganzen ersten Teil), "Markup-Test", "Korrelation etwa 0,74" und "301". Je ein Halbsatz genügt, etwa: "Korrelation: 1 wäre ein vollständiger Gleichlauf, 0 gar keiner".
 - Der empfohlene Seitentitel "P1735 / P1736 (P173500) VW-DSG: Bedeutung, Ursache, Kosten | OZ Performance" hat rund 75 Zeichen; das Audit bemängelt Titel über 60 Zeichen. Kürzen oder den Hinweis geben, dass Google das Ende abschneidet.
+
+---
+
+## Nachprüfung
+
+**Urteil: freigegeben.** Alle 19 Befunde sind behoben. Die Korrekturen haben keinen neuen kritischen oder wichtigen Fehler erzeugt. Drei kleine Punkte sind neu; sie halten den Versand nicht auf, die ersten beiden sollten aber noch mit je einem Halbsatz bereinigt werden.
+
+Geprüft am 25.11.2026: korrigierter Bericht vollständig neu gelesen (296 Zeilen), 23 weitere Live-Abrufe (nur lesend, 1 s Pause). Fremde Websites waren weiterhin nicht erreichbar.
+
+### Stand der 19 Befunde
+
+| # | Befund | Stand | Beleg im korrigierten Bericht |
+|---|---|---|---|
+| 1 | P1735 "einzige deutsche Seite" | behoben | Zusammenfassung, Bauplan, Zeitplan-Hinweis und Fazit nennen jetzt die deutschen Anbieterseiten und "im günstigen Fall"; siehe aber neuen Punkt N2 |
+| 2 | Weiterleitungen im Dashboard, falscher Beweis | behoben | Test einer einzelnen Weiterleitung zuerst, sonst im Code; /preise und /preisrechner als programmierte Seiten benannt; Hinweis zu /leistungen/getriebeinstandsetzung |
+| 3 | 400 € und 1.200 € | behoben | Bestandsaufnahme, Bauplan, Google-Profil, Fahrplan und Checkliste nennen beide Preise gleich |
+| 4 | DPF/AGR | behoben | Sachverhalt wörtlich, Prüfung in Woche 1 bis 2, im Text und im Fahrplan gleich |
+| 5 | Zuordnung alt nach neu | behoben | Tabelle vorhanden, live geprüft (unten) |
+| 6 | P1735-Seite vor Meisterprüfung | behoben | Prüfung vor Veröffentlichung in der Fahrplanzeile und in der Checkliste |
+| 7 | Seitenzahlen | behoben | 1 / 6 bis 8 / 10 bis 15 / danach 3 bis 5 pro Monat, an allen vier Stellen gleich; "15 bis 30" als Zielbild nach sechs Monaten rechnerisch stimmig |
+| 8 | Herstellerintervalle | behoben | Quelle und Unsicherheit genannt, Widerspruch zum eigenen Ratgeber angesprochen |
+| 9 | Preisvergleich Spülung | behoben | "ab 350 €" des anderen Service Points aufgenommen, "stärkster Aufhänger" gestrichen |
+| 10 | Einwilligung und Anonymisierung | behoben | Bauplan, Regeln, Stadtseiten, YouTube, Rechtsabschnitt, Checkliste |
+| 11 | Hauptkategorie | behoben | Entscheidungsregel und Fundort in Google Maps ergänzt, "vermutlich" |
+| 12 | Modellnamen | behoben | |
+| 13 | 9G-Tronic-Preis, Profil-Liste | behoben | |
+| 14 | PetalBot | behoben | |
+| 15 | Zählung und Reihenfolge | behoben | Search Console steht vor den Weiterleitungen; "die ersten vier Zeilen" stimmt; Stadtseiten zurückgestellt |
+| 16 | Wirkung der Weiterleitungen, Search Console | behoben | |
+| 17 | Studien-Einschränkungen | behoben | alle zehn Unterpunkte umgesetzt |
+| 18 | Zweit-Domain | behoben | |
+| 19 | Sprache | behoben | neuer Seitentitel hat 56 Zeichen (nachgezählt) |
+
+### Live-Prüfung der neuen Zuordnungstabelle
+
+| Adresse | Status | Bewertung |
+|---|---|---|
+| /getriebeinstandsetzung, /leistungen/getriebeinstandsetzung | 404 | wie im Bericht |
+| /softwareoptimierung, /leistungen/softwareoptimierung | 404 | wie im Bericht |
+| /getriebe, /getriebespuelung, /leistungen/getriebespuelung | 404 | wie im Bericht |
+| /agbs | 404 | wie im Bericht |
+| /motorinstandsetzung | 404 | wie im Bericht |
+| dieselben mit Schrägstrich am Ende (vier getestet) | 301 auf die Fassung ohne Schrägstrich, dann 404 | deckt sich mit dem Hinweis "auch mit Schrägstrich testen" |
+| Ziel /leistungen/getriebe-instandsetzung | 200 | in Ordnung |
+| Ziel /leistungen/software-optimierung | 200 | in Ordnung |
+| Ziel /leistungen/automatikgetriebe-spuelung | 200 | in Ordnung |
+| Ziel /agb | 200 | in Ordnung |
+| Ziel /leistungen/meister-wartung | 200 | in Ordnung, siehe N3 |
+| /_wix/pages.json (neu als Beleg verlinkt) | 200 | /preise und /preisrechner dort weiter als programmierte Seiten geführt |
+
+Weitere neu eingefügte Aussagen, live bestätigt: AGB-Absatz 3a steht im achten Abschnitt "Hausregeln für Softwarearbeiten, Tuning, Sonderfunktionen, DPF-Ausbau und Umbauten", die Zitate stimmen wörtlich; Angebotsübersicht führt "DPF/AGR Sorglospaket ab 450 €" und "AdBlue Reparatur / Software"; 400 € "ausgebaut anliefern oder per Post" und 1.200 € Komplettpaket auf der Mechatronik-Seite; Fahrzeugliste und Positionsgeber-Erklärung dort vorhanden.
+
+Zusammenfassung und Fazit decken sich mit dem Hauptteil (Reihenfolge der ersten zwei Wochen, P1735-Einschätzung, Zeitangaben, kein Rangversprechen).
+
+### Neu (alle klein)
+
+**N1. klein – Sitemap-Zeile im Fahrplan widerspricht der DPF-Zeile**
+
+- Passage: "Sitemap im Code reparieren: alle Leistungs-, Angebots-, Ratgeber-, Stadt- und Produktseiten aufnehmen" gegenüber zwei Zeilen darunter "Bis dahin beide Seiten aus Angebotsübersicht, Sitemap und Google-Profil heraushalten".
+- Korrektur: in der Sitemap-Zeile ergänzen "außer den beiden Angeboten DPF/AGR und AdBlue, solange die Prüfung läuft".
+
+**N2. klein – Beschreibung der deutschen Anbieterseiten ist nicht belegt (Formulierung stammt aus meinem eigenen Korrekturvorschlag zu Befund 1)**
+
+- Passagen: "allerdings knapp, ohne Werkstattfall und ohne erklärten Komplettpreis" (Zusammenfassung); "Diese Seiten sind knapp, zeigen keinen Werkstattfall und nennen Preise nur für das eingeschickte Bauteil … 'niemand zeigt Diagnose, Fall und Komplettpreis einer Werkstatt vor Ort'" (Bauplan).
+- Fehler: Keine dieser Seiten wurde je vollständig gelesen. technik_p1735_getriebespuelung.md hält fest, dass alle Befunde aus Suchauszügen stammen. Dieselbe Notiz führt außerdem einen deutschen Werkstattfall zum DQ381 (herzdrive.com, "Audi-Praxisfall DQ381/0GC"). "Niemand" ist damit zu absolut. Mein Vorschlag aus der ersten Prüfung war an dieser Stelle selbst zu sicher formuliert.
+- Korrektur: "soweit aus den Suchauszügen erkennbar knapp und ohne erklärten Komplettpreis; ein Werkstattfall fand sich nur vereinzelt" und "kaum jemand zeigt" statt "niemand zeigt". Die Seiten vor Veröffentlichung einmal selbst ansehen.
+
+**N3. klein – Hinweis zum Ziel für /motorinstandsetzung**
+
+- Passage: "am ehesten /leistungen/meister-wartung, falls ihr Motorarbeiten weiter anbietet".
+- Live: Die Seite behandelt Wartung, Inspektion und BMW-Steuerketten; die Wörter Motorinstandsetzung, Motorreparatur oder Motorüberholung kommen dort nicht vor. Der Bericht macht die Weiterleitung bereits von einer Entscheidung abhängig, deshalb kein Fehler.
+- Empfehlung: Halbsatz ergänzen "die Seite erwähnt Motorinstandsetzung bisher nicht; ohne passenden Absatz dort lieber nicht weiterleiten".
