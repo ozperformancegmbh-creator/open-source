@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steuergerät einsenden – Reparatur-Konfigurator | OZ Performance GmbH Bochum</title>
+<meta name="description" content="Getriebesteuergerät oder Mechatronik zur Reparatur einsenden: Gerät wählen, Fehler beschreiben, Versand festlegen und Arbeitskarte drucken.">
+<meta name="format-detection" content="telephone=no">
+<!--
+  OZ Performance – Steuergeräte-Reparatur-Konfigurator
+  Eine einzige Datei: Styles, Konfiguration und Programm sind unten in drei
+  klar getrennten Blöcken abgelegt. Es werden keine externen Dateien, Schriften
+  oder Skripte geladen.
+
+  BLOCK 1  <style id="ozk-styles">          Gestaltung (alles unter .ozk gekapselt)
+  BLOCK 2  <script id="ozk-konfiguration">  ALLE Geschäftsdaten – hier bearbeiten
+  BLOCK 3  <script id="ozk-programm">       Programmlogik – normalerweise nicht anfassen
+-->
+<style id="ozk-styles">
+/* ---------- Farben und Grundwerte (hell) ---------- */
+.ozk, .ozk-druck {
+  --ozk-bg: #f4f4f5;
+  --ozk-flaeche: #ffffff;
+  --ozk-flaeche-2: #f4f4f5;
+  --ozk-rand: #d4d4d8;
+  --ozk-rand-stark: #8e8e99;
+  --ozk-text: #131315;
+  --ozk-text-leise: #5b5b66;
+  --ozk-primaer: #d51a21;
+  --ozk-primaer-dunkel: #bf181d;
+  --ozk-primaer-text: #b3151b;
+  --ozk-primaer-flaeche: #fdeced;
+  --ozk-auf-primaer: #ffffff;
+  --ozk-fehler: #b3151b;
+  --ozk-fehler-flaeche: #fdeced;
+  --ozk-ok: #156b3a;
+  --ozk-ok-flaeche: #e7f5ec;
+  --ozk-hinweis-flaeche: #fff6dd;
+  --ozk-hinweis-rand: #d9a400;
+  --ozk-fokus: #0b57d0;
+  --ozk-radius: 14px;
+  --ozk-radius-klein: 10px;
+  --ozk-schrift: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --ozk-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+}
+/* ---------- Farben dunkel (entspricht der Website) ---------- */
+@media (prefers-color-scheme: dark) {
+  .ozk:not([data-theme="hell"]) {
+    --ozk-bg: #0c0c0d; --ozk-flaeche: #131315; --ozk-flaeche-2: #1b1b1e; --ozk-rand: #2e2e33;
+    --ozk-rand-stark: #6b6b75; --ozk-text: #ececef; --ozk-text-leise: #a3a3ad;
+    --ozk-primaer: #d51a21; --ozk-primaer-dunkel: #bf181d; --ozk-primaer-text: #ff7a7e;
+    --ozk-primaer-flaeche: #2a1012; --ozk-fehler: #ff8a80; --ozk-fehler-flaeche: #2a1012;
+    --ozk-ok: #6fd39a; --ozk-ok-flaeche: #0f2418; --ozk-hinweis-flaeche: #241d08;
+    --ozk-hinweis-rand: #b58900; --ozk-fokus: #8ab4ff; color-scheme: dark;
+  }
+}
+.ozk[data-theme="dunkel"] {
+  --ozk-bg: #0c0c0d; --ozk-flaeche: #131315; --ozk-flaeche-2: #1b1b1e; --ozk-rand: #2e2e33;
+  --ozk-rand-stark: #6b6b75; --ozk-text: #ececef; --ozk-text-leise: #a3a3ad;
+  --ozk-primaer: #d51a21; --ozk-primaer-dunkel: #bf181d; --ozk-primaer-text: #ff7a7e;
+  --ozk-primaer-flaeche: #2a1012; --ozk-fehler: #ff8a80; --ozk-fehler-flaeche: #2a1012;
+  --ozk-ok: #6fd39a; --ozk-ok-flaeche: #0f2418; --ozk-hinweis-flaeche: #241d08;
+  --ozk-hinweis-rand: #b58900; --ozk-fokus: #8ab4ff; color-scheme: dark;
+}
+
+/* ---------- Grundlayout ---------- */
+body.ozk-seite { margin: 0; }
+.ozk { background: var(--ozk-bg); color: var(--ozk-text); font-family: var(--ozk-schrift);
+  font-size: 16px; line-height: 1.5; min-height: 100vh; -webkit-text-size-adjust: 100%; }
+.ozk.ist-eingebettet { min-height: 0; }
+.ozk *, .ozk *::before, .ozk *::after { box-sizing: border-box; }
+.ozk-innen { max-width: 1180px; margin: 0 auto; padding: 20px 16px 40px; }
+.ozk h1, .ozk h2, .ozk h3, .ozk h4, .ozk p, .ozk ul, .ozk ol, .ozk dl, .ozk dd, .ozk fieldset, .ozk legend { margin: 0; padding: 0; }
+.ozk ul, .ozk ol { list-style: none; }
+.ozk fieldset { border: 0; min-width: 0; }
+.ozk a { color: var(--ozk-primaer-text); text-underline-offset: 3px; }
+.ozk :focus-visible { outline: 3px solid var(--ozk-fokus); outline-offset: 2px; border-radius: 4px; }
+.ozk [tabindex="-1"]:focus { outline: none; }
+.ozk-nur-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.ozk-marke { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ozk-primaer-text); }
+.ozk-mono { font-family: var(--ozk-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- Seitenkopf ---------- */
+.ozk-kopf { padding: 12px 0 24px; max-width: 760px; }
+.ozk-kopf h1 { font-size: clamp(1.6rem, 5.4vw, 2.5rem); line-height: 1.12; letter-spacing: -.02em; font-weight: 800; margin: 8px 0 12px; text-wrap: balance; }
+.ozk-kopf p { color: var(--ozk-text-leise); font-size: 1.05rem; max-width: 62ch; }
+
+/* ---------- Ablauf (4 Schritte) ---------- */
+.ozk-ablauf { margin-bottom: 28px; }
+.ozk-ablauf h2, .ozk-faq h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; }
+.ozk-ablauf ol { display: grid; gap: 10px; grid-template-columns: 1fr; counter-reset: ablauf; }
+.ozk-ablauf li { counter-increment: ablauf; background: var(--ozk-flaeche); border: 1px solid var(--ozk-rand); border-radius: var(--ozk-radius); padding: 14px 16px 14px 56px; position: relative; }
+.ozk-ablauf li::before { content: counter(ablauf); position: absolute; left: 14px; top: 14px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .9rem; color: var(--ozk-primaer-text); border: 2px solid var(--ozk-primaer); }
+.ozk-ablauf h3 { font-size: 1rem; font-weight: 700; }
+.ozk-ablauf p { font-size: .92rem; color: var(--ozk-text-leise); margin-top: 2px; }
+
+/* ---------- Raster Wizard + Seitenleiste ---------- */
+.ozk-raster { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.ozk-wizard { background: var(--ozk-flaeche); border: 1px solid var(--ozk-rand); border-radius: var(--ozk-radius); padding: 16px; min-width: 0; }
+.ozk-seitenleiste { display: grid; gap: 16px; min-width: 0; }
+.ozk-box { background: var(--ozk-flaeche); border: 1px solid var(--ozk-rand); border-radius: var(--ozk-radius); padding: 16px; }
+.ozk-box h2 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+.ozk-box dl { display: grid; gap: 8px; font-size: .92rem; }
+.ozk-box dt { color: var(--ozk-text-leise); font-size: .8rem; }
+.ozk-box dd { overflow-wrap: anywhere; }
+.ozk-box .ozk-kontaktliste { display: grid; gap: 8px; font-size: .95rem; }
+.ozk-box .ozk-kontaktliste a { font-weight: 600; }
+
+/* ---------- Fortschritt ---------- */
+.ozk-fortschritt { margin-bottom: 18px; }
+.ozk-fortschritt ol { display: flex; gap: 6px; align-items: stretch; }
+.ozk-fortschritt li { flex: 1 1 0; min-width: 0; }
+.ozk-fortschritt .ozk-fs { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0; background: none; border: 0; color: var(--ozk-text-leise); font: inherit; font-size: .78rem; text-align: left; cursor: default; }
+.ozk-fortschritt button.ozk-fs { cursor: pointer; }
+.ozk-fortschritt .ozk-fs::before { content: ""; display: block; width: 100%; height: 5px; border-radius: 3px; background: var(--ozk-rand); }
+.ozk-fortschritt .ist-fertig::before { background: var(--ozk-primaer); opacity: .55; }
+.ozk-fortschritt .ist-aktiv::before { background: var(--ozk-primaer); }
+.ozk-fortschritt .ist-aktiv { color: var(--ozk-text); font-weight: 700; }
+.ozk-fortschritt .ozk-fs-name { display: none; }
+.ozk-fortschritt-text { margin-top: 10px; font-size: .85rem; color: var(--ozk-text-leise); }
+.ozk-fortschritt-text strong { color: var(--ozk-text); }
+
+/* ---------- Schritt-Inhalt ---------- */
+.ozk-schritt > h2 { font-size: 1.4rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.2; }
+.ozk-schritt > .ozk-einleitung { color: var(--ozk-text-leise); margin: 6px 0 18px; max-width: 65ch; }
+.ozk .ozk-gruppe { margin-top: 22px; }
+.ozk-gruppe > legend, .ozk-gruppe > h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+.ozk-gruppe > .ozk-hilfe { margin: -6px 0 10px; }
+.ozk-hilfe { font-size: .85rem; color: var(--ozk-text-leise); }
+.ozk-pflicht { color: var(--ozk-primaer-text); font-weight: 700; }
+.ozk-felder { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+.ozk-feld { display: grid; gap: 5px; min-width: 0; align-content: start; }
+.ozk-feld > label { font-size: .9rem; font-weight: 600; }
+.ozk-feld .ozk-optional { font-weight: 400; color: var(--ozk-text-leise); }
+.ozk input[type="text"], .ozk input[type="email"], .ozk input[type="tel"], .ozk input[type="number"], .ozk input[type="date"], .ozk select, .ozk textarea {
+  width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; color: var(--ozk-text); background: var(--ozk-flaeche);
+  border: 1px solid var(--ozk-rand-stark); border-radius: var(--ozk-radius-klein); }
+.ozk textarea { min-height: 110px; resize: vertical; }
+.ozk input::placeholder, .ozk textarea::placeholder { color: var(--ozk-text-leise); opacity: .75; }
+.ozk [aria-invalid="true"] { border-color: var(--ozk-fehler) !important; border-width: 2px !important; }
+.ozk-feldfehler { color: var(--ozk-fehler); font-size: .85rem; font-weight: 600; }
+.ozk-feldfehler:empty { display: none; }
+.ozk-fehlerliste { border: 2px solid var(--ozk-fehler); background: var(--ozk-fehler-flaeche); border-radius: var(--ozk-radius-klein); padding: 12px 14px; margin-bottom: 18px; }
+.ozk-fehlerliste h3 { font-size: 1rem; margin-bottom: 6px; }
+.ozk-fehlerliste ul { list-style: disc; padding-left: 20px; display: grid; gap: 2px; }
+.ozk-fehlerliste a { color: var(--ozk-fehler); font-weight: 600; }
+
+/* ---------- Auswahlkarten (Radio / Checkbox) ---------- */
+.ozk-karten { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+.ozk-karte { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border: 1px solid var(--ozk-rand-stark); border-radius: var(--ozk-radius-klein); background: var(--ozk-flaeche); cursor: pointer; }
+.ozk-karte:hover { border-color: var(--ozk-primaer); }
+.ozk-karte.ist-gewaehlt { border-color: var(--ozk-primaer); box-shadow: inset 0 0 0 1px var(--ozk-primaer); background: var(--ozk-primaer-flaeche); }
+.ozk-karte:focus-within { outline: 3px solid var(--ozk-fokus); outline-offset: 2px; }
+.ozk-karte input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--ozk-primaer); }
+.ozk-karte input:focus-visible { outline: none; }
+.ozk-karte-titel { display: block; font-weight: 700; }
+.ozk-karte-kennung { font-family: var(--ozk-mono); font-size: .8rem; color: var(--ozk-text-leise); font-weight: 400; margin-left: 4px; white-space: nowrap; }
+.ozk-karte-text { display: block; font-size: .9rem; color: var(--ozk-text-leise); margin-top: 2px; }
+.ozk-karte-preis { display: block; font-size: .9rem; font-weight: 600; margin-top: 6px; }
+.ozk-wahl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ozk-wahl label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--ozk-rand-stark); border-radius: 999px; cursor: pointer; font-size: .92rem; background: var(--ozk-flaeche); }
+.ozk-wahl label.ist-gewaehlt { border-color: var(--ozk-primaer); background: var(--ozk-primaer-flaeche); font-weight: 600; }
+.ozk-wahl label:focus-within { outline: 3px solid var(--ozk-fokus); outline-offset: 2px; }
+.ozk-wahl input { accent-color: var(--ozk-primaer); width: 18px; height: 18px; margin: 0; }
+.ozk-wahl input:focus-visible { outline: none; }
+.ozk-haken { display: grid; gap: 4px; grid-template-columns: minmax(0, 1fr); }
+.ozk-haken label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 8px 6px; border-radius: 8px; cursor: pointer; font-size: .95rem; }
+.ozk-haken label:hover { background: var(--ozk-flaeche-2); }
+.ozk-haken input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--ozk-primaer); }
+.ozk-zustimmung label { border: 1px solid var(--ozk-rand); padding: 12px; }
+.ozk-zustimmung label.hat-fehler { border-color: var(--ozk-fehler); border-width: 2px; }
+
+/* ---------- Hinweise ---------- */
+.ozk-hinweis { border-left: 4px solid var(--ozk-hinweis-rand); background: var(--ozk-hinweis-flaeche); border-radius: 0 var(--ozk-radius-klein) var(--ozk-radius-klein) 0; padding: 12px 14px; font-size: .92rem; }
+.ozk-hinweis.ist-neutral { border-left-color: var(--ozk-rand-stark); background: var(--ozk-flaeche-2); }
+.ozk-hinweis.ist-ok { border-left-color: var(--ozk-ok); background: var(--ozk-ok-flaeche); }
+.ozk-hinweis.ist-fehler { border-left-color: var(--ozk-fehler); background: var(--ozk-fehler-flaeche); }
+.ozk-hinweis h3, .ozk-hinweis h4 { font-size: .95rem; font-weight: 700; margin-bottom: 4px; }
+.ozk-hinweis ul { list-style: disc; padding-left: 18px; display: grid; gap: 2px; }
+.ozk-hinweis p + p, .ozk-hinweis ul + p, .ozk-hinweis p + ul { margin-top: 6px; }
+.ozk-zweispaltig { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+.ozk-adresse { font-style: normal; border: 1px dashed var(--ozk-rand-stark); border-radius: var(--ozk-radius-klein); padding: 12px 14px; font-weight: 600; line-height: 1.45; }
+
+/* ---------- Fehlercode-Chips ---------- */
+.ozk-chipzeile { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.ozk-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.ozk-chips:empty { display: none; }
+.ozk-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 4px 4px 12px; border-radius: 999px; background: var(--ozk-flaeche-2); border: 1px solid var(--ozk-rand-stark); font-family: var(--ozk-mono); font-size: .9rem; }
+.ozk-chip button { width: 30px; height: 30px; border-radius: 50%; border: 0; background: transparent; color: var(--ozk-text); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.ozk-chip button:hover { background: var(--ozk-rand); }
+
+/* ---------- Schaltflächen ---------- */
+.ozk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 22px; border-radius: 999px; border: 1px solid transparent; font: inherit; font-weight: 700; font-size: .95rem; text-decoration: none; cursor: pointer; text-align: center; }
+.ozk-btn-primaer, .ozk a.ozk-btn-primaer { background: var(--ozk-primaer); color: var(--ozk-auf-primaer); }
+.ozk-btn-primaer:hover { background: var(--ozk-primaer-dunkel); }
+.ozk-btn-zweit, .ozk a.ozk-btn-zweit { background: transparent; color: var(--ozk-text); border-color: var(--ozk-rand-stark); }
+.ozk-btn-zweit:hover { border-color: var(--ozk-text); }
+.ozk-btn-klein { min-height: 40px; padding: 6px 14px; font-size: .85rem; }
+.ozk-btn[disabled] { opacity: .6; cursor: progress; }
+.ozk-btn-text { background: none; border: 0; padding: 4px 2px; font: inherit; font-size: .88rem; font-weight: 600; color: var(--ozk-primaer-text); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 32px; }
+.ozk-navigation { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--ozk-rand); }
+.ozk-navigation .ozk-btn-primaer { margin-left: auto; }
+.ozk-aktionen { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); margin-top: 12px; }
+
+/* ---------- Zusammenfassung ---------- */
+.ozk-auftragsnr { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 12px 14px; border: 1px solid var(--ozk-rand); border-radius: var(--ozk-radius-klein); background: var(--ozk-flaeche-2); }
+.ozk-auftragsnr strong { font-family: var(--ozk-mono); font-size: 1.2rem; letter-spacing: .04em; }
+.ozk-abschnitt { border: 1px solid var(--ozk-rand); border-radius: var(--ozk-radius-klein); padding: 14px; margin-top: 12px; }
+.ozk-abschnitt-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.ozk-abschnitt h3 { font-size: 1rem; font-weight: 700; }
+.ozk-abschnitt dl { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 14px; font-size: .92rem; }
+.ozk-abschnitt dt { color: var(--ozk-text-leise); font-size: .8rem; margin-top: 6px; }
+.ozk-abschnitt dd { overflow-wrap: anywhere; white-space: pre-line; }
+.ozk-preise { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.ozk-preise th, .ozk-preise td { text-align: left; padding: 8px 0; border-bottom: 1px solid var(--ozk-rand); vertical-align: top; font-weight: 400; }
+.ozk-preise td { text-align: right; padding-left: 12px; font-variant-numeric: tabular-nums; }
+.ozk-preise tfoot th, .ozk-preise tfoot td { font-weight: 700; border-bottom: 0; }
+.ozk-preise small { display: block; color: var(--ozk-text-leise); }
+.ozk textarea.ozk-kopiertext { font-family: var(--ozk-mono); font-size: .8rem; min-height: 140px; margin-top: 8px; }
+
+/* ---------- FAQ und Fuß ---------- */
+.ozk-faq { margin-top: 32px; max-width: 820px; }
+.ozk-faq details { border: 1px solid var(--ozk-rand); border-radius: var(--ozk-radius-klein); background: var(--ozk-flaeche); margin-top: 8px; }
+.ozk-faq summary { padding: 14px 16px; font-weight: 600; cursor: pointer; }
+.ozk-faq details p { padding: 0 16px 14px; color: var(--ozk-text-leise); max-width: 70ch; }
+.ozk-fuss { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--ozk-rand); font-size: .85rem; color: var(--ozk-text-leise); }
+#ozk-druckbogen { display: none; }
+
+/* ---------- ab 560 px ---------- */
+@media (min-width: 560px) {
+  .ozk-innen { padding: 28px 24px 56px; }
+  .ozk-wizard { padding: 24px; }
+  .ozk-ablauf ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ozk-felder { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ozk-feld.ist-breit { grid-column: 1 / -1; }
+  .ozk-haken.ist-zweispaltig { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ozk-zweispaltig { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ozk-abschnitt dl { grid-template-columns: minmax(120px, 200px) minmax(0, 1fr); }
+  .ozk-abschnitt dt { margin-top: 0; padding-top: 3px; }
+  .ozk-aktionen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* ---------- ab 760 px ---------- */
+@media (min-width: 760px) {
+  .ozk-fortschritt .ozk-fs-name { display: block; font-size: .72rem; overflow-wrap: break-word; hyphens: auto; }
+  .ozk-fortschritt-text { display: none; }
+  .ozk-karten.ist-zweispaltig { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* ---------- ab 1000 px ---------- */
+@media (min-width: 1000px) {
+  .ozk-ablauf ol { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ozk-raster { grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; }
+  .ozk-seitenleiste { position: sticky; top: 16px; }
+  .ozk-wizard { padding: 32px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ozk-btn, .ozk-karte, .ozk-wahl label { transition: background-color .15s, border-color .15s; }
+}
+
+/* ---------- Druck: nur die Arbeitskarte (A4) ---------- */
+@media print {
+  @page { size: A4; margin: 11mm 12mm; }
+  html, body { background: #fff !important; }
+  body > *:not(#ozk-druckbogen) { display: none !important; }
+  #ozk-druckbogen { display: block !important; }
+}
+.ozk-druck { font-family: var(--ozk-schrift); color: #000; background: #fff; font-size: 9.6pt; line-height: 1.35; }
+.ozk-druck *, .ozk-druck *::before { box-sizing: border-box; }
+.ozk-druck h1, .ozk-druck h2, .ozk-druck p, .ozk-druck ul, .ozk-druck dl, .ozk-druck dd { margin: 0; padding: 0; }
+.ozk-druck-kopf { display: flex; justify-content: space-between; gap: 8mm; border-bottom: 2.5pt solid #000; padding-bottom: 3mm; }
+.ozk-druck-firma { font-size: 15pt; font-weight: 800; letter-spacing: -.01em; }
+.ozk-druck-kopf p { font-size: 8.4pt; }
+.ozk-druck-nr { text-align: right; }
+.ozk-druck-nr strong { display: block; font-family: var(--ozk-mono); font-size: 15pt; letter-spacing: .04em; }
+.ozk-druck h1 { font-size: 13pt; margin: 4mm 0 1mm; }
+.ozk-druck-spalten { display: grid; grid-template-columns: 1fr 1fr; gap: 0 7mm; }
+.ozk-druck section { break-inside: avoid; margin-top: 3.2mm; }
+.ozk-druck h2 { font-size: 8.4pt; text-transform: uppercase; letter-spacing: .08em; border-bottom: .75pt solid #000; padding-bottom: .8mm; margin-bottom: 1.2mm; }
+.ozk-druck dl { display: grid; grid-template-columns: 34mm 1fr; gap: .6mm 3mm; }
+.ozk-druck dt { color: #444; }
+.ozk-druck dd { overflow-wrap: anywhere; white-space: pre-line; font-weight: 600; }
+.ozk-druck-breit { grid-column: 1 / -1; }
+.ozk-druck-preise dl { grid-template-columns: 80mm 1fr; }
+.ozk-druck ul.ozk-druck-reihe { display: flex; flex-wrap: wrap; gap: .6mm 6mm; }
+.ozk-druck ul { list-style: none; display: grid; gap: 1.1mm; }
+.ozk-druck-check li { display: grid; grid-template-columns: 4.5mm 1fr; gap: 2mm; }
+.ozk-druck-check li::before { content: ""; width: 3.6mm; height: 3.6mm; border: .9pt solid #000; margin-top: .4mm; }
+.ozk-druck-linie { border-bottom: .75pt solid #000; height: 7mm; }
+.ozk-druck-unterschrift { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10mm; margin-top: 9mm; }
+.ozk-druck-unterschrift div { border-top: .75pt solid #000; padding-top: 1mm; font-size: 8pt; color: #444; }
+.ozk-druck-klein { font-size: 8pt; color: #444; }
+.ozk-druck-schnitt { margin-top: 6mm; border: 1.2pt dashed #000; padding: 4mm 5mm; display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; break-inside: avoid; position: relative; }
+.ozk-druck-schnitt::before { content: "Hier ausschneiden und gut sichtbar auf das Paket kleben"; position: absolute; top: -2.4mm; left: 5mm; background: #fff; padding: 0 2mm; font-size: 7.6pt; color: #444; }
+.ozk-druck-schnitt p.ozk-druck-etikett { font-size: 7.6pt; text-transform: uppercase; letter-spacing: .08em; color: #444; margin-bottom: 1mm; }
+.ozk-druck-an { font-size: 14pt; font-weight: 800; line-height: 1.25; }
+.ozk-druck-von { font-size: 10pt; line-height: 1.3; }
+</style>
+</head>
+<body class="ozk-seite">
+
+<!-- Ab hier: Einbettbarer Bereich. Für eine Astro-Komponente genügen dieses <div>, die Styles oben und die beiden Skripte unten. -->
+<div class="ozk" id="ozk-wurzel" data-theme="auto">
+  <div class="ozk-innen">
+    <header class="ozk-kopf" id="ozk-kopf"></header>
+    <section class="ozk-ablauf" id="ozk-ablauf" aria-labelledby="ozk-ablauf-titel"></section>
+    <div class="ozk-raster">
+      <main class="ozk-wizard" id="ozk-wizard" aria-label="Reparaturauftrag konfigurieren">
+        <nav class="ozk-fortschritt" id="ozk-fortschritt" aria-label="Fortschritt"></nav>
+        <div class="ozk-schritt" id="ozk-schritt"></div>
+        <noscript>
+          <p>Für den Konfigurator wird JavaScript benötigt. Sie erreichen uns auch telefonisch unter 0234 54453755 oder per E-Mail an info@ozperformance.de.</p>
+        </noscript>
+      </main>
+      <aside class="ozk-seitenleiste" id="ozk-seitenleiste" aria-label="Ihr Auftrag und Kontakt"></aside>
+    </div>
+    <section class="ozk-faq" id="ozk-faq" aria-labelledby="ozk-faq-titel"></section>
+    <footer class="ozk-fuss" id="ozk-fuss"></footer>
+    <div class="ozk-nur-sr" id="ozk-ansage" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script id="ozk-konfiguration">
+/* ==========================================================================
+   KONFIGURATION  –  HIER WERDEN ALLE GESCHÄFTSDATEN GEPFLEGT
+   ==========================================================================
+   So bearbeiten Sie diese Datei:
+   - Texte stehen in "Anführungszeichen". Ändern Sie nur den Text dazwischen.
+   - Preise sind Zahlen OHNE Anführungszeichen und OHNE Euro-Zeichen,
+     mit PUNKT statt Komma:   400   oder   89.5
+   - ALLE PREISE SIND NETTO (ohne Mehrwertsteuer). Der Konfigurator rechnet
+     die Mehrwertsteuer selbst hinzu und zeigt Brutto und Netto an.
+   - null (ohne Anführungszeichen) bedeutet: "noch kein Preis hinterlegt".
+     Dann erscheint beim Kunden kein Betrag, sondern ein Hinweistext
+     (z. B. "Preis nach Eingangsprüfung").
+   - true = ja / eingeschaltet,  false = nein / ausgeschaltet.
+   - Jede Zeile endet mit einem Komma. Bitte keine Kommas oder Klammern löschen.
+   - Zeilen, die mit // beginnen, sind Kommentare und werden nicht angezeigt.
+   ========================================================================== */
+window.OZ_KONFIGURATION = {
+
+  /* ---------------------------------------------------------------------
+     1. FIRMENDATEN
+     --------------------------------------------------------------------- */
+  firma: {
+    name: "OZ Performance GmbH",
+    zusatz: "KFZ-Meisterbetrieb · Getriebe- und Softwaretechnik",
+    strasse: "Coloniastraße 21",
+    plzOrt: "44892 Bochum",
+    land: "Deutschland",
+    telefon: "0234 54453755",            // so wird die Nummer angezeigt
+    telefonLink: "+4923454453755",       // internationale Schreibweise für den Anruf-Link
+    whatsapp: "0176 45858800",           // so wird die Nummer angezeigt
+    whatsappInternational: "4917645858800", // für den WhatsApp-Link: Ländervorwahl ohne +, ohne führende 0
+    email: "info@ozperformance.de",
+    web: "https://www.ozperformance.de",
+    // Öffnungszeiten laut Website (Stand November 2026) – bei Änderungen hier anpassen:
+    oeffnungszeiten: "Mo–Fr 9:00–18:00 Uhr, Sa 9:00–13:00 Uhr",
+    // Zusatz auf dem Adressaufkleber, damit Pakete intern richtig zugeordnet werden:
+    adresszusatzPaket: "Steuergeräte-Reparatur",
+  },
+
+  /* ---------------------------------------------------------------------
+     2. ALLGEMEINE EINSTELLUNGEN
+     --------------------------------------------------------------------- */
+  allgemein: {
+    mwstProzent: 19,
+    // Garantie/Gewährleistung in Monaten. null = es wird KEINE Aussage zur Garantie angezeigt.
+    // Beispiel: garantieMonate: 12,
+    garantieMonate: null,
+    // Pauschale für die Eingangsprüfung, falls KEINE Reparatur beauftragt wird (netto).
+    // null = wird nicht erwähnt.   Beispiel: pruefpauschaleNetto: 50,
+    pruefpauschaleNetto: null,
+    // Anfang der Auftragsnummer, z. B. OZ-261125-K7QX
+    auftragsPraefix: "OZ",
+    // Farbschema: "auto" (richtet sich nach dem Gerät des Besuchers), "dunkel" oder "hell".
+    // Die Website ist dunkel – für die Einbettung dort empfiehlt sich "dunkel".
+    farbschema: "auto",
+    // Überschrift und Einleitung oberhalb des Konfigurators:
+    titel: "Getriebesteuergerät oder Mechatronik zur Reparatur einsenden",
+    einleitung: "In sechs Schritten zum Reparaturauftrag: Gerät auswählen, Fehler beschreiben, Versand festlegen. Am Ende drucken Sie die Arbeitskarte für Ihr Paket und senden uns den Auftrag.",
+  },
+
+  /* ---------------------------------------------------------------------
+     3. AUFTRAG ABSENDEN
+     --------------------------------------------------------------------- */
+  submit: {
+    // Adresse, an die der Auftrag als JSON gesendet wird (Webhook / eigenes Backend).
+    // null = kein Server angebunden: Der Kunde sendet den Auftrag dann selbst
+    //        per vorbereiteter E-Mail oder WhatsApp-Nachricht.
+    // Beispiel: endpoint: "https://www.ozperformance.de/api/reparaturauftrag",
+    endpoint: null,
+    zeitlimitSekunden: 20,
+    // Beschriftung der Sende-Schaltfläche [Text vom Anwalt prüfen lassen – siehe README, "Button-Lösung"]
+    buttonText: "Auftrag senden",
+    // Hinweis direkt über der Sende-Schaltfläche:
+    abschlussHinweis: "[Text vom Anwalt prüfen lassen] Mit dem Absenden übermitteln Sie uns Ihren Reparaturauftrag. Die Reparatur beginnt erst nach Ihrer Freigabe des Kostenvoranschlags – oder ohne Rückfrage, soweit Sie oben eine Freigabegrenze festgelegt haben.",
+  },
+
+  /* ---------------------------------------------------------------------
+     4. ZUSATZLEISTUNGEN
+     --------------------------------------------------------------------- */
+  express: {
+    aktiv: true,                 // false = Option wird nicht angeboten
+    // Aufpreis netto. null = beim Kunden steht "auf Anfrage".
+    // Beispiel (frei erfunden, bitte eigenen Wert eintragen): aufpreisNetto: 80,
+    aufpreisNetto: null,
+    bezeichnung: "Express-Bearbeitung",
+    beschreibung: "Ihr Gerät wird nach dem Eingang bevorzugt geprüft und bearbeitet.",
+  },
+  einbau: {
+    aktiv: true,                 // false = Option wird nicht angeboten
+    // Preis netto für Aus-/Einbau und Grundeinstellung. null = "wird im Kostenvoranschlag ausgewiesen".
+    preisNetto: null,
+    bezeichnung: "Einbau und Grundeinstellung bei uns in Bochum",
+    beschreibung: "Sie bringen das Fahrzeug zu uns. Wir bauen das Gerät aus, reparieren es, bauen es wieder ein und führen die Grundeinstellung mit dem Diagnosetester durch. Ein Versand entfällt – Sie stellen stattdessen eine Terminanfrage.",
+  },
+
+  /* ---------------------------------------------------------------------
+     5. VERSAND
+     --------------------------------------------------------------------- */
+  // Versandlabel, das OZ Performance dem Kunden per E-Mail schickt.
+  // Erst auf true stellen, wenn ein DHL-Geschäftskundenvertrag oder ein Versand-Tool
+  // (z. B. Sendcloud) eingerichtet ist – siehe README, Abschnitt DHL.
+  labelService: {
+    aktiv: false,
+    preisNetto: null,            // null = "wird im Kostenvoranschlag ausgewiesen"
+    bezeichnung: "Versandlabel von OZ Performance per E-Mail",
+    beschreibung: "Sie erhalten von uns ein fertiges DHL-Versandlabel per E-Mail, drucken es aus und geben das Paket in einer Filiale oder Packstation ab.",
+  },
+  versand: {
+    // Seite, auf der Kunden selbst eine DHL-Paketmarke kaufen (geprüft am 25.11.2026):
+    dhlOnlineFrankierungUrl: "https://www.dhl.de/de/privatkunden/pakete-versenden/online-frankieren.html",
+
+    // Rückversand-Arten. Preise NETTO; null = "wird im Kostenvoranschlag ausgewiesen".
+    // NUR ZUR ORIENTIERUNG – öffentliche DHL-Listenpreise für Privatkunden 2026 (Endpreise, dhl.de,
+    // abgerufen am 25.11.2026; neue Preise ab 01.01.2027 angekündigt). Das sind NICHT Ihre Preise:
+    //   DHL Paket bis 5 kg 7,69 € · bis 10 kg 10,49 € · bis 20 kg 18,99 € · bis 31,5 kg 23,99 €
+    //   DHL Express national (online) bis 5 kg 18,00 € · bis 10 kg 30,00 € · bis 20 kg 36,00 €
+    //   Samstagszustellung Express: zusätzlich 11,90 €
+    //   Transportversicherung Paket bis 2.500 € Warenwert: zusätzlich 6,99 €
+    rueckweg: [
+      { id: "standard",  name: "DHL Paket (Standard)",              beschreibung: "Versicherter Paketversand mit Sendungsverfolgung.", preisNetto: null, aktiv: true },
+      { id: "express",   name: "DHL Express",                       beschreibung: "Zustellung in der Regel am nächsten Werktag nach Versand.", preisNetto: null, aktiv: true },
+      { id: "samstag",   name: "DHL Express mit Samstagszustellung", beschreibung: "Für Sendungen, die freitags verschickt werden und samstags ankommen sollen.", preisNetto: null, aktiv: true },
+      { id: "abholung",  name: "Selbstabholung in Bochum",          beschreibung: "Sie holen das reparierte Gerät während der Öffnungszeiten bei uns ab.", preisNetto: 0, aktiv: true },
+    ],
+    // Höherversicherung für den Rückversand:
+    versicherung: {
+      aktiv: true,
+      preisNetto: null,          // null = "wird im Kostenvoranschlag ausgewiesen"
+      bezeichnung: "Höhere Transportversicherung für den Rückversand",
+      beschreibung: "DHL-Pakete sind laut DHL-Preisliste standardmäßig bis 500 € abgesichert. Für höherwertige Geräte kann eine Zusatzversicherung gebucht werden.",
+    },
+    // Hinweise zum Verpacken (erscheinen bei "Ich versende selbst"):
+    verpackungstipps: [
+      "Restöl vollständig ablaufen lassen und alle Öffnungen verschließen.",
+      "Das Gerät in einen dichten Kunststoffbeutel legen, damit kein Öl austreten kann.",
+      "Stecker und Kontakte schützen, nichts am Kabel oder Stecker anheben.",
+      "Stabilen Karton verwenden und rundum fest polstern – das Gerät darf sich im Karton nicht bewegen.",
+      "Alte Versandetiketten und Gefahrgut-Aufkleber vom Karton entfernen.",
+      "Wir empfehlen, den Paketwert beim Versand passend zu versichern und den Einlieferungsbeleg aufzubewahren.",
+    ],
+    // Packliste auf der gedruckten Arbeitskarte (allgemeiner Teil):
+    packliste: [
+      "Gerät laut Auftrag, öldicht verpackt",
+      "Diese Arbeitskarte, unterschrieben",
+      "Fehlerspeicher-Protokoll (Ausdruck oder Foto), falls vorhanden",
+      "Karton gepolstert, alte Etiketten entfernt",
+    ],
+  },
+
+  /* ---------------------------------------------------------------------
+     6. ZAHLUNGSARTEN  (bitte an das tatsächliche Angebot anpassen)
+     nurWerkstatt: true    = nur für Werkstatt-/Gewerbekunden sichtbar
+     nurVorOrt: true       = nur bei Selbstabholung oder Einbau in Bochum sichtbar
+     --------------------------------------------------------------------- */
+  zahlungsarten: [
+    { id: "ueberweisung", name: "Überweisung nach Rechnungsstellung", aktiv: true },
+    { id: "paypal",       name: "PayPal",                             aktiv: true },
+    { id: "vorort",       name: "Bar oder Karte bei Abholung in Bochum", aktiv: true, nurVorOrt: true },
+    { id: "rechnung",     name: "Rechnung mit Zahlungsziel (für Werkstätten, nach Absprache)", aktiv: true, nurWerkstatt: true },
+  ],
+
+  // Länder für die Kundenadresse. Das erste Land ist vorausgewählt.
+  laender: ["Deutschland", "Österreich", "Schweiz", "Niederlande", "Belgien", "Luxemburg", "Anderes Land"],
+
+  /* ---------------------------------------------------------------------
+     7. RECHTSTEXTE  –  PLATZHALTER!
+     Alle Texte unten sind Entwürfe und MÜSSEN vor dem Livegang von einem
+     Anwalt geprüft und ersetzt werden. Der Vermerk in eckigen Klammern wird
+     dem Kunden absichtlich angezeigt, solange er im Text steht.
+     --------------------------------------------------------------------- */
+  rechtstexte: {
+    agb: {
+      text: "[Text vom Anwalt prüfen lassen] Ich habe die Allgemeinen Geschäftsbedingungen der OZ Performance GmbH gelesen und bin mit ihrer Geltung einverstanden.",
+      linkText: "AGB öffnen",
+      linkUrl: "https://www.ozperformance.de/agb",
+      kurzname: "AGB akzeptiert",
+    },
+    datenschutz: {
+      text: "[Text vom Anwalt prüfen lassen] Ich habe die Datenschutzhinweise zur Kenntnis genommen. Meine Angaben werden zur Bearbeitung dieses Reparaturauftrags verarbeitet.",
+      linkText: "Datenschutzhinweise öffnen",
+      linkUrl: "https://www.ozperformance.de/datenschutz",
+      kurzname: "Datenschutzhinweise zur Kenntnis genommen",
+    },
+    eigentum: {
+      text: "[Text vom Anwalt prüfen lassen] Ich bestätige, dass ich Eigentümer des Geräts bzw. des Fahrzeugs bin oder vom Eigentümer bevollmächtigt wurde, diesen Reparaturauftrag zu erteilen.",
+      linkText: "",
+      linkUrl: "",
+      kurzname: "Eigentum / Vollmacht bestätigt",
+    },
+    // Wird nur Privatkunden (Verbrauchern) angezeigt:
+    widerruf: {
+      text: "[Text vom Anwalt prüfen lassen] Ich verlange ausdrücklich, dass OZ Performance schon vor Ablauf der Widerrufsfrist mit der Leistung beginnt. Mir ist bekannt, dass ich im Fall eines Widerrufs die bis dahin erbrachten Leistungen anteilig bezahlen muss und dass mein Widerrufsrecht mit vollständiger Erbringung der Leistung erlischt.",
+      linkText: "Widerrufsbelehrung öffnen",
+      linkUrl: "https://www.ozperformance.de/widerruf",
+      kurzname: "Leistungsbeginn vor Ablauf der Widerrufsfrist verlangt",
+    },
+  },
+
+  /* ---------------------------------------------------------------------
+     8. GERÄTEKATALOG
+     Jede Zeile in "gruppen" ist eine Auswahl-Schaltfläche in Schritt 1.
+     Jeder Block in "geraete" ist ein Gerätetyp.
+
+     Felder je Gerät:
+       id               interner Kurzname (klein, ohne Leerzeichen) – nicht ändern, wenn schon Links darauf zeigen
+       gruppe           id der Gruppe, unter der das Gerät erscheint
+       name             Anzeigename
+       kennung          Getriebekennung(en), wird neben dem Namen angezeigt
+       nummernAnfang    Anfänge von Teilenummern, an denen das Gerät erkannt wird (für die Teilenummern-Suche)
+       beschreibung     kurzer, sachlicher Text
+       symptome         typische Fehlerbilder (werden in Schritt 2 als Ankreuzfelder angeboten)
+       preisNetto       Reparaturpreis NETTO. null = "Preis nach Eingangsprüfung"
+       preisIstAbPreis  true = Anzeige "ab 476,00 €", false = Anzeige als Festpreis
+       bearbeitungstage Text, z. B. "2–3 Werktage". null = es wird keine Bearbeitungszeit genannt
+       einsenden        was der Kunde schicken soll
+       nichtEinsenden   was NICHT ins Paket gehört
+       angebotUrl       Link zur passenden Angebotsseite auf der Website ("" = kein Link)
+
+     BEISPIEL, wie ein Preis eingetragen wird (Zahlen frei erfunden!):
+       preisNetto: 400,            ->  Anzeige: "ab 476,00 € inkl. MwSt. (400,00 € netto)"
+       bearbeitungstage: "2–3 Werktage",
+
+     WICHTIG: Die Angaben unter "einsenden" / "nichtEinsenden" sind Vorschläge.
+     Bitte je Gerät fachlich prüfen und an Ihre Arbeitsweise anpassen.
+     --------------------------------------------------------------------- */
+  gruppen: [
+    { id: "vw",       name: "VW-Konzern DSG",        hinweis: "VW, Audi, Seat, Cupra, Škoda" },
+    { id: "audi",     name: "Audi S tronic / Multitronic", hinweis: "Längs eingebaute Getriebe" },
+    { id: "zf",       name: "ZF-Automatik",          hinweis: "z. B. BMW, Audi, Jaguar, Land Rover" },
+    { id: "mercedes", name: "Mercedes-Benz",         hinweis: "7G-Tronic" },
+    { id: "sonstige", name: "Anderes Gerät",         hinweis: "Nicht gelistet" },
+  ],
+
+  geraete: [
+    {
+      id: "dq200", gruppe: "vw",
+      name: "DSG 7-Gang DQ200", kennung: "0AM / 0CW",
+      nummernAnfang: ["0AM", "0CW"],
+      beschreibung: "7-Gang-Doppelkupplungsgetriebe mit Trockenkupplungen. Die Mechatronik (Steuergerät mit Hydraulikeinheit) sitzt vorn am Getriebe.",
+      symptome: ["Blinkende Fahrstufenanzeige oder Getriebewarnung", "Kein Kraftschluss, Fahrzeug fährt nicht an", "Gerade oder ungerade Gänge fehlen", "Hydraulikpumpe läuft auffällig lange oder gar nicht"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Komplette Mechatronik (Steuergerät mit Hydraulikeinheit und Druckspeicher)"],
+      nichtEinsenden: ["Kupplung, Ausrücklager und Schaltgabeln", "Getriebeöl / Hydrauliköl (bitte ablassen)", "Halter und Anbauteile, die nicht zur Mechatronik gehören"],
+      angebotUrl: "https://www.ozperformance.de/angebote/dq200-0am-mechatronik-schieberkasten",
+    },
+    {
+      id: "dq250", gruppe: "vw",
+      name: "DSG 6-Gang DQ250", kennung: "02E",
+      nummernAnfang: ["02E"],
+      beschreibung: "6-Gang-Doppelkupplungsgetriebe mit nassen Kupplungen. Die Mechatronik sitzt im Getriebe und läuft im Öl.",
+      symptome: ["Getriebe schaltet in den Notlauf", "Harte oder verzögerte Schaltvorgänge", "Keine Kommunikation mit dem Getriebesteuergerät", "Blinkende Fahrstufenanzeige"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Komplette Mechatronik (Steuergerät mit Schieberkasten)"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Ölfilter, Dichtungen und Deckel", "Kupplungspaket"],
+      angebotUrl: "",
+    },
+    {
+      id: "dq381", gruppe: "vw",
+      name: "DSG 7-Gang DQ381", kennung: "0GC",
+      nummernAnfang: ["0GC"],
+      beschreibung: "7-Gang-Doppelkupplungsgetriebe mit nassen Kupplungen für quer eingebaute Motoren.",
+      symptome: ["Fehler an den Kupplungs-Positionssensoren (z. B. P1735, P1736)", "Getriebe schaltet in den Notlauf", "Blinkende Fahrstufenanzeige oder Getriebewarnung", "Kein Vortrieb in einzelnen Gängen"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      // Hinweis: Auf der Website steht für die Reparatur IN DER WERKSTATT "ab 400 €".
+      // Ob das auch für eingesandte Geräte gilt, entscheiden Sie – deshalb hier noch null.
+      einsenden: ["Mechatronik bzw. Getriebesteuergerät, wie ausgebaut"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Ölwanne, Filter und Dichtungen", "Kupplungspaket"],
+      angebotUrl: "https://www.ozperformance.de/angebote/getriebesteuergeraet-reparatur-dq381-dq500",
+    },
+    {
+      id: "dq500", gruppe: "vw",
+      name: "DSG 7-Gang DQ500", kennung: "0BH / 0BT",
+      nummernAnfang: ["0BH", "0BT"],
+      beschreibung: "7-Gang-Doppelkupplungsgetriebe mit nassen Kupplungen für hohe Drehmomente, z. B. in Transportern und leistungsstarken Modellen.",
+      symptome: ["Fehler an den Kupplungs-Positionssensoren (z. B. P1735, P1736)", "Getriebe schaltet in den Notlauf", "Blinkende Fahrstufenanzeige oder Getriebewarnung", "Harte oder verzögerte Schaltvorgänge"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Mechatronik bzw. Getriebesteuergerät, wie ausgebaut"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Ölwanne, Filter und Dichtungen", "Kupplungspaket"],
+      angebotUrl: "https://www.ozperformance.de/angebote/getriebesteuergeraet-reparatur-dq381-dq500",
+    },
+    {
+      id: "dl501", gruppe: "audi",
+      name: "Audi S tronic 7-Gang DL501", kennung: "0B5",
+      nummernAnfang: ["0B5"],
+      beschreibung: "7-Gang-Doppelkupplungsgetriebe für längs eingebaute Motoren. Steuergerät und Hydraulik sitzen im Getriebe.",
+      symptome: ["Getriebefehlermeldung im Kombiinstrument", "Gerade oder ungerade Gänge fehlen", "Keine Kommunikation mit dem Getriebesteuergerät", "Ruckeln beim Anfahren"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Getriebesteuergerät bzw. Mechatronik, wie ausgebaut", "Steckverbindungen bitte besonders schützen"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Kupplungspaket", "Ölwanne und Filter"],
+      angebotUrl: "",
+    },
+    {
+      id: "multitronic", gruppe: "audi",
+      name: "Audi Multitronic", kennung: "01J / 0AW",
+      nummernAnfang: ["01J", "0AW"],
+      beschreibung: "Stufenloses Automatikgetriebe (CVT). Das Steuergerät sitzt im Getriebe hinter dem Enddeckel.",
+      symptome: ["Blinkende Fahrstufenanzeige", "Kein Vortrieb vorwärts oder rückwärts", "Ruckeln beim Anfahren", "Getriebe schaltet in den Notlauf"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Getriebesteuergerät, wie ausgebaut"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Enddeckel, Dichtungen und Schrauben"],
+      angebotUrl: "",
+    },
+    {
+      id: "zf6hp", gruppe: "zf",
+      name: "ZF 6HP (6-Gang-Automatik)", kennung: "6HP",
+      nummernAnfang: ["6HP"],
+      beschreibung: "6-Gang-Wandlerautomatik. Die Mechatronik (elektronisches Steuergerät mit hydraulischem Schaltgerät) sitzt in der Ölwanne.",
+      symptome: ["Getriebe schaltet in den Notlauf", "Harte oder verzögerte Schaltvorgänge", "Keine Kommunikation mit dem Getriebesteuergerät", "Fehler tritt vor allem bei warmem Getriebe auf"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Mechatronik, wie ausgebaut – wenn Sie nur das elektronische Steuergerät einsenden möchten, stimmen Sie das bitte vorher mit uns ab"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Ölwanne mit Filter", "Dichthülsen und Schrauben"],
+      angebotUrl: "",
+    },
+    {
+      id: "zf8hp", gruppe: "zf",
+      name: "ZF 8HP (8-Gang-Automatik)", kennung: "8HP",
+      nummernAnfang: ["8HP"],
+      beschreibung: "8-Gang-Wandlerautomatik. Die Mechatronik (elektronisches Steuergerät mit hydraulischem Schaltgerät) sitzt in der Ölwanne.",
+      symptome: ["Getriebe schaltet in den Notlauf", "Harte oder verzögerte Schaltvorgänge", "Keine Kommunikation mit dem Getriebesteuergerät", "Getriebefehlermeldung im Kombiinstrument"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Mechatronik, wie ausgebaut – wenn Sie nur das elektronische Steuergerät einsenden möchten, stimmen Sie das bitte vorher mit uns ab"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Ölwanne mit Filter", "Dichthülsen und Schrauben"],
+      angebotUrl: "",
+    },
+    {
+      id: "mb7229", gruppe: "mercedes",
+      name: "Mercedes 7G-Tronic", kennung: "722.9",
+      nummernAnfang: ["722.9", "7229"],
+      beschreibung: "7-Gang-Automatikgetriebe. Die elektrische Steuereinheit sitzt auf dem Schaltschieberkasten im Getriebe.",
+      symptome: ["Getriebe schaltet in den Notlauf", "Getriebe bleibt in einem Gang", "Fehler an den internen Drehzahlsensoren", "Fahrstufe lässt sich nicht einlegen"],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Elektrische Steuereinheit, wie ausgebaut"],
+      nichtEinsenden: ["Getriebeöl (bitte ablassen)", "Ölwanne mit Filter", "Schrauben und Kleinteile"],
+      angebotUrl: "",
+    },
+    {
+      // Sonderfall "nicht gelistet": erzeugt eine Anfrage statt eines Reparaturauftrags.
+      id: "anderes", gruppe: "sonstige", istAnfrage: true,
+      name: "Anderes Steuergerät / nicht gelistet", kennung: "Anfrage",
+      nummernAnfang: [],
+      beschreibung: "Ihr Gerät steht nicht in der Liste? Beschreiben Sie es in den nächsten Schritten. Wir prüfen, ob wir es reparieren können, und melden uns bei Ihnen.",
+      symptome: [],
+      preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
+      einsenden: ["Bitte senden Sie das Gerät erst ein, nachdem wir Ihre Anfrage bestätigt haben."],
+      nichtEinsenden: [],
+      angebotUrl: "",
+    },
+  ],
+
+  // Allgemeine Symptome, die bei jedem Gerät zusätzlich zur Auswahl stehen:
+  symptomeAllgemein: [
+    "Fehler tritt nur bei kaltem Getriebe auf",
+    "Fehler tritt nur bei warmem Getriebe auf",
+    "Fehler tritt sporadisch auf",
+    "Fahrzeug ist nicht mehr fahrbereit",
+  ],
+
+  /* ---------------------------------------------------------------------
+     9. FEHLERCODE-ZUORDNUNG
+     Gibt der Kunde in Schritt 1 einen dieser Codes ein, werden die genannten
+     Geräte vorgeschlagen. "geraete" enthält die id-Werte aus dem Katalog.
+     Nur Codes eintragen, bei denen die Zuordnung fachlich gesichert ist.
+     --------------------------------------------------------------------- */
+  fehlercodes: [
+    { codes: ["P1735", "P1736", "P0805"], geraete: ["dq381", "dq500"],
+      hinweis: "Diese Codes betreffen die Kupplungs-Positionssensoren und treten typischerweise bei den DSG-Getrieben DQ381 und DQ500 auf." },
+    { codes: ["P17BF", "P189C", "P0841"], geraete: ["dq200"],
+      hinweis: "Diese Codes hängen typischerweise mit dem Hydraulikdruck der Mechatronik im DSG DQ200 zusammen." },
+    { codes: ["0717", "0718", "0720", "0722", "0723"], geraete: ["mb7229"],
+      hinweis: "Diese Mercedes-Fehlercodes betreffen typischerweise die internen Sensoren der Steuereinheit im 7G-Tronic-Getriebe 722.9." },
+  ],
+
+  /* ---------------------------------------------------------------------
+     10. TEXTE: "SO LÄUFT ES AB" UND HÄUFIGE FRAGEN
+     Bitte lesen und bestätigen – die Texte beschreiben Ihren Ablauf.
+     --------------------------------------------------------------------- */
+  ablauf: [
+    { titel: "Auftrag zusammenstellen", text: "Gerät, Fahrzeug und Fehlerbild angeben, Versand und Zahlungsart wählen." },
+    { titel: "Verpacken und einsenden", text: "Arbeitskarte ausdrucken, unterschreiben und mit dem Gerät ins Paket legen – oder das Gerät in Bochum abgeben." },
+    { titel: "Prüfung und Kostenvoranschlag", text: "Wir prüfen das Gerät nach dem Eingang und nennen Ihnen den Reparaturpreis im Kostenvoranschlag." },
+    { titel: "Reparatur und Rückversand", text: "Nach Ihrer Freigabe – oder direkt, wenn der Preis innerhalb Ihrer Freigabegrenze liegt – reparieren wir das Gerät und schicken es auf dem gewählten Weg zurück." },
+  ],
+  faq: [
+    { frage: "Was kostet die Reparatur?",
+      antwort: "Der Preis hängt vom Gerätetyp und vom Schaden ab. Ist beim Gerät ein Preis angegeben, gilt er als Orientierung für den üblichen Reparaturumfang. In jedem Fall erhalten Sie nach der Eingangsprüfung einen Kostenvoranschlag. Sie können im Auftrag auch eine Freigabegrenze festlegen, bis zu der wir ohne Rückfrage reparieren dürfen." },
+    { frage: "Welche Teile soll ich einsenden?",
+      antwort: "Das hängt vom Getriebe ab. In Schritt 2 zeigt der Konfigurator für Ihr Gerät an, was ins Paket gehört und was nicht. Wenn Sie unsicher sind, rufen Sie uns vor dem Ausbau kurz an." },
+    { frage: "Wie verpacke ich eine Mechatronik richtig?",
+      antwort: "Lassen Sie das Öl vollständig ablaufen, verschließen Sie die Öffnungen und legen Sie das Gerät in einen dichten Beutel. Polstern Sie den Karton so, dass sich nichts bewegen kann, und schützen Sie Stecker und Kontakte. Entfernen Sie alte Etiketten vom Karton." },
+    { frage: "Muss das Gerät nach dem Einbau angelernt werden?",
+      antwort: "Bei vielen Getrieben ist nach dem Einbau eine Grundeinstellung mit einem Diagnosetester erforderlich. Wenn Sie dafür keine Möglichkeit haben, wählen Sie in Schritt 3 den Einbau bei uns in Bochum." },
+    { frage: "Soll ich den Fehlerspeicher vorher auslesen?",
+      antwort: "Ja, wenn möglich. Lesen Sie den Fehlerspeicher aus, bevor das Gerät ausgebaut oder die Batterie abgeklemmt wird, und legen Sie das Protokoll bei. Das erleichtert uns die Diagnose." },
+    { frage: "Kann ich als Werkstatt einsenden?",
+      antwort: "Ja. Wählen Sie in Schritt 5 „Werkstatt / Gewerbe“ und geben Sie Firma und, falls vorhanden, Ihre USt-IdNr. an. Im Feld „Ihre Referenz“ können Sie Ihre eigene Auftragsnummer oder das Kennzeichen des Kundenfahrzeugs hinterlegen." },
+    { frage: "Was passiert mit meinen Eingaben?",
+      antwort: "Ihre Eingaben bleiben bis zum Absenden nur in diesem Browser-Tab gespeichert, damit beim Neuladen nichts verloren geht. Sie werden erst übertragen, wenn Sie den Auftrag senden. Mit „Eingaben löschen“ entfernen Sie alle Angaben sofort." },
+  ],
+};
+</script>
+
+<script id="ozk-programm">
+/* ==========================================================================
+   PROGRAMM  –  ab hier normalerweise nichts ändern
+   ========================================================================== */
+(function () {
+  "use strict";
+  var K = window.OZ_KONFIGURATION;
+  var wurzel = document.getElementById("ozk-wurzel");
+  if (!K || !wurzel) { return; }
+
+  var SPEICHER = "ozKonfigurator.v1";
+  var SCHRITTE = 6;
+  var fehler = {};            // Feld-ID -> Fehlertext (aktueller Schritt)
+  var sendeStatus = { zustand: "", text: "" };   // "", "laeuft", "ok", "fehler"
+  var loeschenBestaetigen = false;
+
+  /* ---------------- kleine Helfer ---------------- */
+  function h(tag, attrs) {
+    var el = document.createElement(tag), k, v, i;
+    if (attrs) {
+      for (k in attrs) {
+        if (!Object.prototype.hasOwnProperty.call(attrs, k)) { continue; }
+        v = attrs[k];
+        if (v === null || v === undefined || v === false) { continue; }
+        if (k === "class") { el.className = v; }
+        else if (k === "text") { el.textContent = v; }
+        else if (k.slice(0, 2) === "on") { el.addEventListener(k.slice(2), v); }
+        else if (k === "checked" || k === "disabled" || k === "open" || k === "readOnly") { el[k] = true; }
+        else if (k === "value") { el.value = v; }
+        else { el.setAttribute(k, v === true ? "" : String(v)); }
+      }
+    }
+    for (i = 2; i < arguments.length; i++) { anhaengen(el, arguments[i]); }
+    return el;
+  }
+  function anhaengen(el, kind) {
+    if (kind === null || kind === undefined || kind === false) { return; }
+    if (Array.isArray(kind)) { kind.forEach(function (k) { anhaengen(el, k); }); return; }
+    el.appendChild(typeof kind === "string" || typeof kind === "number" ? document.createTextNode(String(kind)) : kind);
+  }
+  function leeren(el) { while (el.firstChild) { el.removeChild(el.firstChild); } return el; }
+  function zahl(x) {
+    if (typeof x === "number") { return isFinite(x) && x >= 0 ? x : null; }
+    if (typeof x === "string" && x.trim() !== "") {
+      var t = x.trim().replace(/[€\s]/g, "");
+      if (t.indexOf(",") !== -1) { t = t.replace(/\./g, "").replace(",", "."); }
+      var n = Number(t);
+      return t !== "" && isFinite(n) && n >= 0 ? n : null;
+    }
+    return null;
+  }
+  var mwst = (zahl(K.allgemein.mwstProzent) === null ? 19 : zahl(K.allgemein.mwstProzent)) / 100;
+  function brutto(netto) { return Math.round(netto * (1 + mwst) * 100) / 100; }
+  function euro(betrag) {
+    try { return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(betrag); }
+    catch (e) { return betrag.toFixed(2).replace(".", ",") + " €"; }
+  }
+  /* Preistext: Zahl -> "ab 476,00 € inkl. MwSt. (400,00 € netto)", null -> Ersatztext */
+  function preisText(netto, ersatz, ab) {
+    var n = zahl(netto);
+    if (n === null) { return ersatz; }
+    if (n === 0) { return "ohne Aufpreis"; }
+    return (ab ? "ab " : "") + euro(brutto(n)) + " inkl. MwSt. (" + euro(n) + " netto)";
+  }
+  function trim(s) { return String(s === null || s === undefined ? "" : s).trim(); }
+  function heuteIso() {
+    var d = new Date();
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+  function datumDe(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    return m ? m[3] + "." + m[2] + "." + m[1] : (iso || "");
+  }
+  function geraet(id) {
+    for (var i = 0; i < K.geraete.length; i++) { if (K.geraete[i].id === id) { return K.geraete[i]; } }
+    return null;
+  }
+  function aktive(liste) { return (liste || []).filter(function (x) { return x.aktiv !== false; }); }
+  function ansage(text) { var a = document.getElementById("ozk-ansage"); if (a) { a.textContent = ""; setTimeout(function () { a.textContent = text; }, 30); } }
+
+  /* ---------------- Zustand ---------------- */
+  function leererZustand() {
+    return {
+      v: 1, schritt: 1, maxSchritt: 1,
+      geraet: { weg: "katalog", gruppe: "", id: "", teilenummer: "", code: "" },
+      fahrzeug: { marke: "", modell: "", baujahr: "", fin: "", km: "", getriebeNr: "", codes: [], ausgelesen: "", diagnosegeraet: "", symptome: [], versuche: "", beschreibung: "" },
+      leistung: { express: false, einbau: false, freigabeArt: "kv", freigabeBis: "" },
+      versand: { hin: "", rueck: "", versicherung: false, warenwert: "" },
+      termin: { wunsch1: "", wunsch2: "", zeit: "egal", fahrbereit: "", bemerkung: "" },
+      kontakt: { typ: "privat", firma: "", ustid: "", vorname: "", nachname: "", strasse: "", plz: "", ort: "", land: (K.laender && K.laender[0]) || "Deutschland", email: "", telefon: "", kanal: "", zahlung: "", referenz: "", abwAdresse: false, lName: "", lStrasse: "", lPlz: "", lOrt: "", website: "" },
+      zustimmung: { agb: false, datenschutz: false, eigentum: false, widerruf: false },
+      auftragsnummer: "", erstelltAm: "", gesendet: ""
+    };
+  }
+  function laden() {
+    var z = leererZustand(), roh, alt, k, f;
+    try { roh = window.sessionStorage.getItem(SPEICHER); } catch (e) { roh = null; }
+    if (!roh) { return z; }
+    try { alt = JSON.parse(roh); } catch (e2) { return z; }
+    if (!alt || alt.v !== 1) { return z; }
+    for (k in z) {
+      if (!Object.prototype.hasOwnProperty.call(alt, k)) { continue; }
+      if (z[k] && typeof z[k] === "object" && !Array.isArray(z[k])) {
+        if (alt[k] && typeof alt[k] === "object") {
+          for (f in z[k]) {
+            if (Object.prototype.hasOwnProperty.call(alt[k], f) && typeof alt[k][f] === typeof z[k][f] && Array.isArray(alt[k][f]) === Array.isArray(z[k][f])) { z[k][f] = alt[k][f]; }
+          }
+        }
+      } else if (typeof alt[k] === typeof z[k]) { z[k] = alt[k]; }
+    }
+    z.schritt = Math.min(Math.max(1, z.schritt | 0), SCHRITTE);
+    z.maxSchritt = Math.min(Math.max(z.schritt, z.maxSchritt | 0), SCHRITTE);
+    if (z.geraet.id && !geraet(z.geraet.id)) { z.geraet.id = ""; z.schritt = 1; z.maxSchritt = 1; }
+    return z;
+  }
+  var Z = laden();
+  function speichern() { try { window.sessionStorage.setItem(SPEICHER, JSON.stringify(Z)); } catch (e) { /* Speicher gesperrt: Konfigurator läuft ohne Zwischenspeicher weiter */ } }
+  function lesen(pfad) { var p = pfad.split("."); return Z[p[0]][p[1]]; }
+  function setzen(pfad, wert) {
+    var p = pfad.split(".");
+    Z[p[0]][p[1]] = wert;
+    if (Z.gesendet || sendeStatus.zustand) { Z.gesendet = ""; sendeStatus = { zustand: "", text: "" }; }   // Angaben wurden nach dem Senden geändert
+    speichern();
+  }
+
+  /* ---------------- abgeleitete Werte ---------------- */
+  function istAnfrage() { var g = geraet(Z.geraet.id); return !!(g && g.istAnfrage); }
+  function einbauGewaehlt() { return K.einbau.aktiv !== false && Z.leistung.einbau; }
+  function schrittNamen() {
+    return ["Gerät finden", "Fahrzeug & Fehler", "Leistung & Optionen", einbauGewaehlt() ? "Termin" : "Versand", "Kontakt & Zahlung", "Zusammenfassung"];
+  }
+  function hinwegOptionen() {
+    var o = [{ id: "selbst", name: "Ich versende selbst", beschreibung: "Sie verpacken das Gerät und frankieren das Paket selbst, zum Beispiel über die DHL Online Frankierung.", preis: "" }];
+    if (K.labelService && K.labelService.aktiv === true) {
+      o.push({ id: "label", name: K.labelService.bezeichnung, beschreibung: K.labelService.beschreibung, preis: preisText(K.labelService.preisNetto, "Preis wird im Kostenvoranschlag ausgewiesen") });
+    }
+    o.push({ id: "abgabe", name: "Persönliche Abgabe in Bochum", beschreibung: "Sie geben das ausgebaute Gerät während der Öffnungszeiten bei uns ab (" + K.firma.oeffnungszeiten + ").", preis: "" });
+    return o;
+  }
+  function rueckwegOptionen() { return aktive(K.versand.rueckweg); }
+  function rueckweg(id) { return rueckwegOptionen().filter(function (r) { return r.id === id; })[0] || null; }
+  function zahlungsOptionen() {
+    var vorOrt = einbauGewaehlt() || Z.versand.rueck === "abholung";
+    return aktive(K.zahlungsarten).filter(function (z) {
+      if (z.nurWerkstatt && Z.kontakt.typ !== "werkstatt") { return false; }
+      if (z.nurVorOrt && !vorOrt) { return false; }
+      return true;
+    });
+  }
+  function symptomListe() {
+    var g = geraet(Z.geraet.id), liste = [];
+    ((g && g.symptome) || []).concat(K.symptomeAllgemein || []).forEach(function (s) { if (liste.indexOf(s) === -1) { liste.push(s); } });
+    return liste;
+  }
+  function codeNormalisieren(roh) {
+    var c = trim(roh).toUpperCase().replace(/[\s\-_]/g, "");
+    if (/^[PUBC][0-9A-F]{6}$/.test(c)) { c = c.slice(0, 5); }      // P173500 -> P1735
+    return c;
+  }
+  function codeTreffer(roh) {
+    var c = codeNormalisieren(roh), i;
+    if (!c) { return null; }
+    for (i = 0; i < K.fehlercodes.length; i++) {
+      if (K.fehlercodes[i].codes.map(function (x) { return String(x).toUpperCase(); }).indexOf(c) !== -1) { return K.fehlercodes[i]; }
+    }
+    return null;
+  }
+  function nummerTreffer(roh) {
+    var n = trim(roh).toUpperCase().replace(/[^A-Z0-9]/g, ""), treffer = [];
+    if (n.length < 3) { return treffer; }
+    K.geraete.forEach(function (g) {
+      (g.nummernAnfang || []).forEach(function (a) {
+        var anfang = String(a).toUpperCase().replace(/[^A-Z0-9]/g, "");
+        /* Treffer, wenn die Nummer mit der Kennung beginnt (längere Kennungen dürfen auch mittendrin stehen) */
+        if (anfang && (n.indexOf(anfang) === 0 || (anfang.length >= 4 && n.indexOf(anfang) !== -1)) && treffer.indexOf(g) === -1) { treffer.push(g); }
+      });
+    });
+    return treffer;
+  }
+  function neueAuftragsnummer() {
+    var abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "", i, zufall, d = new Date();
+    try { zufall = new Uint32Array(4); window.crypto.getRandomValues(zufall); }
+    catch (e) { zufall = [0, 0, 0, 0].map(function () { return Math.floor(Math.random() * 4294967296); }); }
+    for (i = 0; i < 4; i++) { s += abc.charAt(zufall[i] % abc.length); }
+    return (K.allgemein.auftragsPraefix || "OZ") + "-" + String(d.getFullYear()).slice(-2) + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + "-" + s;
+  }
+
+  /* Preispositionen für Zusammenfassung, Druck und Datensatz */
+  function preisPositionen() {
+    var g = geraet(Z.geraet.id), pos = [], r;
+    if (!g) { return pos; }
+    pos.push({ name: (g.istAnfrage ? "Anfrage: " : "Reparatur ") + g.name, netto: zahl(g.preisNetto), ab: g.preisIstAbPreis !== false && zahl(g.preisNetto) !== null,
+      ersatz: g.istAnfrage ? "Angebot nach Prüfung Ihrer Anfrage" : "Preis nach Eingangsprüfung" });
+    if (K.express.aktiv !== false && Z.leistung.express) { pos.push({ name: K.express.bezeichnung, netto: zahl(K.express.aufpreisNetto), ersatz: "auf Anfrage" }); }
+    if (einbauGewaehlt()) { pos.push({ name: K.einbau.bezeichnung, netto: zahl(K.einbau.preisNetto), ersatz: "wird im Kostenvoranschlag ausgewiesen" }); }
+    else {
+      if (Z.versand.hin === "label" && K.labelService.aktiv === true) { pos.push({ name: K.labelService.bezeichnung, netto: zahl(K.labelService.preisNetto), ersatz: "wird im Kostenvoranschlag ausgewiesen" }); }
+      r = rueckweg(Z.versand.rueck);
+      if (r) { pos.push({ name: "Rückversand: " + r.name, netto: zahl(r.preisNetto), ersatz: "wird im Kostenvoranschlag ausgewiesen" }); }
+      if (versicherungGewaehlt()) { pos.push({ name: K.versand.versicherung.bezeichnung, netto: zahl(K.versand.versicherung.preisNetto), ersatz: "wird im Kostenvoranschlag ausgewiesen" }); }
+    }
+    return pos;
+  }
+  function versicherungGewaehlt() { return K.versand.versicherung.aktiv !== false && Z.versand.versicherung && Z.versand.rueck && Z.versand.rueck !== "abholung"; }
+  function preisSumme() {
+    var pos = preisPositionen(), summe = 0, vollstaendig = pos.length > 0, ab = false;
+    pos.forEach(function (p) { if (p.netto === null) { vollstaendig = false; } else { summe += p.netto; } if (p.ab) { ab = true; } });
+    return { vollstaendig: vollstaendig, netto: summe, ab: ab };
+  }
+  function positionsText(p) { return p.netto === null ? p.ersatz : preisText(p.netto, p.ersatz, p.ab); }
+
+  /* Abschnitte der Zusammenfassung – eine Quelle für Bildschirm, Druck, E-Mail und Datensatz */
+  function abschnitte() {
+    var g = geraet(Z.geraet.id) || { name: "–", kennung: "" }, f = Z.fahrzeug, k = Z.kontakt, l = Z.leistung, a = [], zeilen, r, hin, zahlung;
+    function zeile(liste, name, wert) { if (trim(wert) !== "") { liste.push([name, String(wert)]); } }
+
+    zeilen = [];
+    zeile(zeilen, "Gerätetyp", g.name + (g.kennung && !g.istAnfrage ? " (" + g.kennung + ")" : ""));
+    zeile(zeilen, "Teilenummer", f.getriebeNr || Z.geraet.teilenummer);
+    a.push({ titel: "Gerät", schritt: 1, zeilen: zeilen });
+
+    zeilen = [];
+    zeile(zeilen, "Fahrzeug", trim(f.marke + " " + f.modell));
+    zeile(zeilen, "Baujahr", f.baujahr);
+    zeile(zeilen, "FIN", f.fin);
+    zeile(zeilen, "Kilometerstand", f.km ? Number(f.km).toLocaleString("de-DE") + " km" : "");
+    zeile(zeilen, "Fehlercodes", f.codes.join(", "));
+    zeile(zeilen, "Fehlerspeicher ausgelesen", f.ausgelesen === "ja" ? "Ja" + (f.diagnosegeraet ? " – mit " + f.diagnosegeraet : "") : (f.ausgelesen === "nein" ? "Nein" : ""));
+    zeile(zeilen, "Symptome", f.symptome.join("\n"));
+    zeile(zeilen, "Bisherige Reparaturversuche", f.versuche);
+    zeile(zeilen, "Fehlerbeschreibung", f.beschreibung);
+    a.push({ titel: "Fahrzeug und Fehler", schritt: 2, zeilen: zeilen });
+
+    zeilen = [];
+    zeile(zeilen, "Leistung", g.istAnfrage ? "Anfrage zur Reparatur" : "Prüfung und Reparatur");
+    if (K.express.aktiv !== false) { zeile(zeilen, K.express.bezeichnung, l.express ? "Ja" : "Nein"); }
+    if (K.einbau.aktiv !== false) { zeile(zeilen, "Einbau in Bochum", l.einbau ? "Ja – Fahrzeug wird gebracht" : "Nein – Gerät wird eingesandt"); }
+    zeile(zeilen, "Kostenfreigabe", l.freigabeArt === "limit" && trim(l.freigabeBis) ? "Reparatur ohne Rückfrage freigegeben bis " + euro(Number(l.freigabeBis)) + " (inkl. MwSt.)" : "Erst Kostenvoranschlag, Reparatur nur nach Freigabe");
+    a.push({ titel: "Leistung und Optionen", schritt: 3, zeilen: zeilen });
+
+    zeilen = [];
+    if (einbauGewaehlt()) {
+      zeile(zeilen, "Wunschtermin", datumDe(Z.termin.wunsch1));
+      zeile(zeilen, "Ausweichtermin", datumDe(Z.termin.wunsch2));
+      zeile(zeilen, "Bevorzugte Tageszeit", { vormittag: "Vormittags", nachmittag: "Nachmittags", egal: "Keine Vorgabe" }[Z.termin.zeit] || "");
+      zeile(zeilen, "Fahrzeug fahrbereit", { ja: "Ja", nein: "Nein – wird angeliefert / abgeschleppt", unsicher: "Unsicher" }[Z.termin.fahrbereit] || "");
+      zeile(zeilen, "Bemerkung", Z.termin.bemerkung);
+      a.push({ titel: "Terminanfrage", schritt: 4, zeilen: zeilen });
+    } else {
+      hin = hinwegOptionen().filter(function (o) { return o.id === Z.versand.hin; })[0];
+      r = rueckweg(Z.versand.rueck);
+      zeile(zeilen, "Hinweg", hin ? hin.name : "");
+      zeile(zeilen, "Rückweg", r ? r.name : "");
+      if (versicherungGewaehlt()) { zeile(zeilen, "Höherversicherung", "Ja" + (trim(Z.versand.warenwert) ? " – Warenwert " + euro(Number(Z.versand.warenwert)) : "")); }
+      a.push({ titel: "Versand", schritt: 4, zeilen: zeilen });
+    }
+
+    zeilen = [];
+    zeile(zeilen, "Kundenart", k.typ === "werkstatt" ? "Werkstatt / Gewerbe" : "Privatkunde");
+    zeile(zeilen, "Firma", k.typ === "werkstatt" ? k.firma : "");
+    zeile(zeilen, "USt-IdNr.", k.typ === "werkstatt" ? k.ustid : "");
+    zeile(zeilen, "Name", trim(k.vorname + " " + k.nachname));
+    zeile(zeilen, "Anschrift", trim(k.strasse) ? k.strasse + "\n" + trim(k.plz + " " + k.ort) + "\n" + k.land : "");
+    if (k.abwAdresse && !einbauGewaehlt()) { zeile(zeilen, "Lieferadresse", trim(k.lName + "\n" + k.lStrasse + "\n" + trim(k.lPlz + " " + k.lOrt))); }
+    zeile(zeilen, "E-Mail", k.email);
+    zeile(zeilen, "Telefon", k.telefon);
+    zeile(zeilen, "Bevorzugter Kontakt", { email: "E-Mail", telefon: "Telefon", whatsapp: "WhatsApp" }[k.kanal] || "");
+    zahlung = aktive(K.zahlungsarten).filter(function (z) { return z.id === k.zahlung; })[0];
+    zeile(zeilen, "Zahlungswunsch", zahlung ? zahlung.name : "");
+    zeile(zeilen, "Ihre Referenz", k.referenz);
+    a.push({ titel: "Kontakt und Zahlung", schritt: 5, zeilen: zeilen });
+    return a;
+  }
+  function zustimmungsArten() { return Z.kontakt.typ === "privat" ? ["agb", "datenschutz", "eigentum", "widerruf"] : ["agb", "datenschutz", "eigentum"]; }
+
+  /* Reiner Text für E-Mail, WhatsApp und Zwischenablage */
+  function auftragsText(kurz) {
+    var t = [], g = geraet(Z.geraet.id), s = preisSumme();
+    t.push((istAnfrage() ? "Reparaturanfrage " : "Reparaturauftrag ") + Z.auftragsnummer);
+    t.push("an " + K.firma.name + " – erstellt am " + datumDe(Z.erstelltAm));
+    abschnitte().forEach(function (ab) {
+      t.push("");
+      t.push(ab.titel.toUpperCase());
+      ab.zeilen.forEach(function (z) {
+        var wert = z[1].replace(/\n/g, ", ");
+        if (kurz && (wert === "Nein" || z[0] === "Leistung" || z[0] === "Kundenart" && wert === "Privatkunde")) { return; }
+        if (kurz && wert.length > 240) { wert = wert.slice(0, 240) + " … (vollständig auf der Arbeitskarte)"; }
+        t.push(z[0] + ": " + wert);
+      });
+    });
+    if (!kurz || preisPositionen().some(function (p) { return p.netto !== null && p.netto > 0; })) {
+      t.push("");
+      t.push("PREISE");
+      preisPositionen().forEach(function (p) { t.push(p.name + ": " + positionsText(p)); });
+      if (s.vollstaendig && g) { t.push("Summe: " + preisText(s.netto, "", s.ab)); }
+    }
+    t.push("");
+    if (kurz) { t.push("Bestätigt: " + zustimmungsArten().filter(function (art) { return Z.zustimmung[art]; }).map(function (art) { return K.rechtstexte[art].kurzname; }).join("; ")); }
+    else {
+      t.push("BESTÄTIGT");
+      zustimmungsArten().forEach(function (art) { if (Z.zustimmung[art]) { t.push("- " + K.rechtstexte[art].kurzname); } });
+    }
+    return t.join("\n");
+  }
+  function datensatz() {
+    var g = geraet(Z.geraet.id), s = preisSumme();
+    return {
+      auftragsnummer: Z.auftragsnummer, erstelltAm: new Date().toISOString(), art: istAnfrage() ? "anfrage" : "reparaturauftrag",
+      quelle: "oz-konfigurator",
+      geraet: { id: Z.geraet.id, name: g ? g.name : "", kennung: g ? g.kennung : "", einstieg: Z.geraet.weg, teilenummer: Z.fahrzeug.getriebeNr || Z.geraet.teilenummer, gesuchterFehlercode: Z.geraet.code },
+      fahrzeug: Z.fahrzeug, leistung: Z.leistung,
+      versand: einbauGewaehlt() ? null : Z.versand, termin: einbauGewaehlt() ? Z.termin : null,
+      kontakt: (function () { var k = JSON.parse(JSON.stringify(Z.kontakt)); delete k.website; return k; })(),
+      zustimmungen: zustimmungsArten().reduce(function (o, art) { o[art] = { erteilt: !!Z.zustimmung[art], text: K.rechtstexte[art].text }; return o; }, {}),
+      preise: { mwstProzent: Math.round(mwst * 100), positionen: preisPositionen().map(function (p) { return { name: p.name, netto: p.netto, brutto: p.netto === null ? null : brutto(p.netto), anzeige: positionsText(p) }; }),
+        summeNetto: s.vollstaendig ? s.netto : null, summeBrutto: s.vollstaendig ? brutto(s.netto) : null },
+      zusammenfassungText: auftragsText(false)
+    };
+  }
+
+  /* ---------------- Formular-Bausteine ---------------- */
+  function fehlerEntfernen(id) {
+    if (!fehler[id]) { return; }
+    delete fehler[id];
+    var el = document.getElementById(id), box = document.getElementById(id + "-fehler");
+    if (el) { el.removeAttribute("aria-invalid"); }
+    if (box) { box.textContent = ""; }
+  }
+  /* Textfeld, Zahl, Datum, Textbereich oder Auswahlliste */
+  function feld(o) {
+    var id = o.id, beschr = [], eingabe, attrs, wert = lesen(o.pfad);
+    if (o.hilfe) { beschr.push(id + "-hilfe"); }
+    beschr.push(id + "-fehler");
+    attrs = { id: id, name: id, "aria-describedby": beschr.join(" "), "aria-invalid": fehler[id] ? "true" : null, "aria-required": o.pflicht ? "true" : null,
+      autocomplete: o.auto || "off", placeholder: o.platzhalter || null, maxlength: o.max || null, inputmode: o.inputmode || null,
+      oninput: function () { setzen(o.pfad, o.gross ? eingabe.value.toUpperCase() : eingabe.value); fehlerEntfernen(id); if (o.nachEingabe) { o.nachEingabe(eingabe.value); } } };
+    if (o.typ === "textarea") { attrs.rows = o.zeilen || 4; eingabe = h("textarea", attrs); eingabe.value = wert; }
+    else if (o.typ === "select") {
+      attrs.onchange = attrs.oninput; delete attrs.oninput; delete attrs.placeholder; delete attrs.maxlength;
+      eingabe = h("select", attrs, o.optionen.map(function (op) { return h("option", { value: op[0], text: op[1] }); }));
+      eingabe.value = wert;
+    } else {
+      attrs.type = o.typ || "text";
+      if (o.min !== undefined) { attrs.min = o.min; }
+      if (o.maxWert !== undefined) { attrs.max = o.maxWert; }
+      if (o.gross) { attrs.style = "text-transform:uppercase"; attrs.spellcheck = "false"; attrs.autocapitalize = "characters"; }
+      eingabe = h("input", attrs); eingabe.value = wert;
+    }
+    return h("div", { class: "ozk-feld" + (o.breit ? " ist-breit" : "") },
+      h("label", { for: id }, o.name, o.pflicht ? h("span", { class: "ozk-pflicht", "aria-hidden": "true", text: " *" }) : h("span", { class: "ozk-optional", text: " (optional)" })),
+      eingabe,
+      o.hilfe ? h("span", { class: "ozk-hilfe", id: id + "-hilfe", text: o.hilfe }) : null,
+      h("span", { class: "ozk-feldfehler", id: id + "-fehler", text: fehler[id] || "" }));
+  }
+  /* Gruppe aus Radio-Schaltern. stil: "karten" oder "wahl" */
+  function radioGruppe(o) {
+    var aktuell = lesen(o.pfad);
+    var kinder = o.optionen.map(function (op, i) {
+      var id = i === 0 ? o.id : o.id + "-" + i, gewaehlt = aktuell === op.id;
+      var eingabe = h("input", { type: "radio", name: o.id, id: id, value: op.id, checked: gewaehlt, "aria-describedby": o.id + "-fehler",
+        onchange: function () { setzen(o.pfad, op.id); fehlerEntfernen(o.id); if (o.nachWahl) { o.nachWahl(op.id); } neuZeichnen(); } });
+      if (o.stil === "wahl") { return h("label", { class: gewaehlt ? "ist-gewaehlt" : null }, eingabe, h("span", { text: op.name })); }
+      return h("label", { class: "ozk-karte" + (gewaehlt ? " ist-gewaehlt" : "") }, eingabe,
+        h("span", null,
+          h("span", { class: "ozk-karte-titel" }, op.name, op.kennung ? h("span", { class: "ozk-karte-kennung", text: op.kennung }) : null),
+          op.beschreibung ? h("span", { class: "ozk-karte-text", text: op.beschreibung }) : null,
+          op.preis ? h("span", { class: "ozk-karte-preis", text: op.preis }) : null));
+    });
+    return h("fieldset", { class: "ozk-gruppe", "aria-invalid": null },
+      h("legend", null, o.name, o.pflicht ? h("span", { class: "ozk-pflicht", "aria-hidden": "true", text: " *" }) : null, o.pflicht ? h("span", { class: "ozk-nur-sr", text: " (Pflichtangabe)" }) : null),
+      o.hilfe ? h("p", { class: "ozk-hilfe", text: o.hilfe }) : null,
+      h("div", { class: o.stil === "wahl" ? "ozk-wahl" : "ozk-karten" + (o.zweispaltig ? " ist-zweispaltig" : "") }, kinder),
+      h("p", { class: "ozk-feldfehler", id: o.id + "-fehler", text: fehler[o.id] || "" }));
+  }
+  /* Einzelne Checkbox als Karte */
+  function hakenKarte(o) {
+    var an = !!lesen(o.pfad);
+    return h("label", { class: "ozk-karte" + (an ? " ist-gewaehlt" : "") },
+      h("input", { type: "checkbox", id: o.id, checked: an, onchange: function (e) { setzen(o.pfad, e.target.checked); if (o.nachWahl) { o.nachWahl(e.target.checked); } neuZeichnen(); } }),
+      h("span", null, h("span", { class: "ozk-karte-titel", text: o.name }), o.beschreibung ? h("span", { class: "ozk-karte-text", text: o.beschreibung }) : null, o.preis ? h("span", { class: "ozk-karte-preis", text: o.preis }) : null));
+  }
+  function hinweisListe(titel, punkte, klasse) {
+    if (!punkte || !punkte.length) { return null; }
+    return h("div", { class: "ozk-hinweis " + (klasse || "") }, h("h4", { text: titel }), h("ul", null, punkte.map(function (p) { return h("li", { text: p }); })));
+  }
+  function adressBlock() {
+    return h("address", { class: "ozk-adresse" }, K.firma.name, h("br"), K.firma.adresszusatzPaket ? [K.firma.adresszusatzPaket, h("br")] : null, K.firma.strasse, h("br"), K.firma.plzOrt);
+  }
+  function geraetPreisText(g) {
+    return preisText(g.preisNetto, g.istAnfrage ? "Angebot nach Prüfung Ihrer Anfrage" : "Preis nach Eingangsprüfung – Sie erhalten vorab einen Kostenvoranschlag", g.preisIstAbPreis !== false);
+  }
+
+  /* ---------------- Schritt 1: Gerät finden ---------------- */
+  function geraeteKarten(liste, hinweisText) {
+    var alle = liste.slice();
+    return [
+      hinweisText ? h("p", { class: "ozk-hilfe", text: hinweisText, style: "margin-bottom:10px" }) : null,
+      radioGruppe({ id: "g-geraet", pfad: "geraet.id", name: "Gerätetyp", pflicht: true, zweispaltig: alle.length > 3,
+        optionen: alle.map(function (g) { return { id: g.id, name: g.name, kennung: g.kennung, beschreibung: g.beschreibung, preis: geraetPreisText(g) }; }) })
+    ];
+  }
+  function mitAnderem(liste) {
+    var anderes = K.geraete.filter(function (g) { return g.istAnfrage; });
+    return liste.filter(function (g) { return !g.istAnfrage; }).concat(anderes);
+  }
+  function geraetDetails() {
+    var g = geraet(Z.geraet.id);
+    if (!g) { return null; }
+    return h("div", { class: "ozk-hinweis ist-neutral", style: "margin-top:16px" },
+      h("h3", { text: "Ihre Auswahl: " + g.name }),
+      h("p", { text: geraetPreisText(g) }),
+      g.bearbeitungstage ? h("p", { text: "Übliche Bearbeitungszeit nach Eingang: " + g.bearbeitungstage }) : null,
+      zahl(K.allgemein.garantieMonate) ? h("p", { text: "Garantie auf die Reparatur: " + zahl(K.allgemein.garantieMonate) + " Monate" }) : null,
+      g.symptome && g.symptome.length ? [h("p", { text: "Typische Fehlerbilder:" }), h("ul", null, g.symptome.map(function (s) { return h("li", { text: s }); }))] : null,
+      g.angebotUrl ? h("p", null, h("a", { href: g.angebotUrl, target: "_blank", rel: "noopener", text: "Mehr zu dieser Leistung auf ozperformance.de" }), h("span", { class: "ozk-nur-sr", text: " (öffnet in neuem Tab)" })) : null);
+  }
+  function schritt1() {
+    var G = Z.geraet, inhalt = [], treffer, t, liste;
+    inhalt.push(radioGruppe({ id: "g-weg", pfad: "geraet.weg", name: "Wie möchten Sie Ihr Gerät finden?", stil: "wahl",
+      optionen: [{ id: "katalog", name: "Getriebe auswählen" }, { id: "teilenummer", name: "Teilenummer eingeben" }, { id: "fehlercode", name: "Fehlercode eingeben" }] }));
+
+    if (G.weg === "katalog") {
+      inhalt.push(radioGruppe({ id: "g-gruppe", pfad: "geraet.gruppe", name: "Hersteller / Getriebefamilie", stil: "wahl", pflicht: true,
+        optionen: K.gruppen.map(function (gr) { return { id: gr.id, name: gr.name }; }),
+        nachWahl: function (gruppe) {
+          var passend = K.geraete.filter(function (g) { return g.gruppe === gruppe; });
+          var aktuell = geraet(Z.geraet.id);
+          if (passend.length === 1) { Z.geraet.id = passend[0].id; } else if (!aktuell || aktuell.gruppe !== gruppe) { Z.geraet.id = ""; }
+          speichern();
+        } }));
+      if (G.gruppe) {
+        t = K.gruppen.filter(function (gr) { return gr.id === G.gruppe; })[0];
+        inhalt.push(geraeteKarten(K.geraete.filter(function (g) { return g.gruppe === G.gruppe; }), t && t.hinweis ? t.hinweis : ""));
+      }
+    } else if (G.weg === "teilenummer") {
+      inhalt.push(h("div", { class: "ozk-gruppe" }, h("div", { class: "ozk-felder" },
+        feld({ id: "g-teilenummer", pfad: "geraet.teilenummer", name: "Teilenummer des Geräts oder Getriebes", pflicht: true, gross: true, max: 40, breit: true,
+          platzhalter: "z. B. 0GC 325 025 D", hilfe: "Die Nummer steht auf dem Typenschild des Steuergeräts bzw. der Mechatronik. Sie wird im Auftrag gespeichert.",
+          nachEingabe: function () { vorschlagNachNummer(true); } }))));
+      inhalt.push(h("div", { id: "g-vorschlag" }));
+    } else {
+      inhalt.push(h("div", { class: "ozk-gruppe" }, h("div", { class: "ozk-felder" },
+        feld({ id: "g-code", pfad: "geraet.code", name: "Fehlercode aus dem Fehlerspeicher", pflicht: true, gross: true, max: 12, breit: true,
+          platzhalter: "z. B. P1735", hilfe: "Geben Sie einen Code ein. Weitere Codes können Sie im nächsten Schritt ergänzen.",
+          nachEingabe: function () { vorschlagNachCode(true); } }))));
+      inhalt.push(h("div", { id: "g-vorschlag" }));
+    }
+    inhalt.push(h("div", { id: "g-details" }, geraetDetails()));
+    return { titel: "Gerät finden", einleitung: "Wählen Sie Ihr Getriebe aus der Liste – oder lassen Sie sich über die Teilenummer oder einen Fehlercode einen Gerätetyp vorschlagen.", inhalt: inhalt,
+      danach: function () { if (G.weg === "teilenummer") { vorschlagNachNummer(false); } else if (G.weg === "fehlercode") { vorschlagNachCode(false); } } };
+  }
+  function vorschlagZeichnen(liste, text, klasse, beiEingabe) {
+    var box = document.getElementById("g-vorschlag"), erlaubt;
+    if (!box) { return; }
+    erlaubt = liste.map(function (g) { return g.id; });
+    if (beiEingabe && Z.geraet.id && erlaubt.indexOf(Z.geraet.id) === -1) { Z.geraet.id = ""; speichern(); }
+    leeren(box);
+    if (text) { box.appendChild(h("div", { class: "ozk-hinweis " + klasse, style: "margin-top:14px", role: beiEingabe ? "status" : null }, h("p", { text: text }))); }
+    if (liste.length) { anhaengen(box, geraeteKarten(liste, "")); }
+    var d = document.getElementById("g-details"); if (d) { leeren(d); anhaengen(d, geraetDetails()); }
+    seitenleiste();
+  }
+  function vorschlagNachNummer(beiEingabe) {
+    var n = trim(Z.geraet.teilenummer), treffer = nummerTreffer(n);
+    if (n.length < 3) { vorschlagZeichnen([], "", "", beiEingabe); return; }
+    if (treffer.length) { vorschlagZeichnen(mitAnderem(treffer), "Die Nummer passt zu folgendem Gerätetyp. Bitte bestätigen Sie die Auswahl.", "ist-ok", beiEingabe); }
+    else { vorschlagZeichnen(mitAnderem(K.geraete), "Zu dieser Nummer haben wir keinen automatischen Treffer. Bitte wählen Sie den Gerätetyp selbst aus – oder „Anderes Steuergerät“, wenn Sie unsicher sind. Die Nummer wird in jedem Fall mit dem Auftrag gespeichert.", "ist-neutral", beiEingabe); }
+  }
+  function vorschlagNachCode(beiEingabe) {
+    var c = codeNormalisieren(Z.geraet.code), t = codeTreffer(c);
+    if (c.length < 4) { vorschlagZeichnen([], "", "", beiEingabe); return; }
+    if (t) {
+      vorschlagZeichnen(mitAnderem(t.geraete.map(geraet).filter(Boolean)), "Fehlercode " + c + ": " + t.hinweis + " Das ist ein Hinweis und ersetzt keine Diagnose – bitte wählen Sie Ihr Getriebe aus.", "ist-ok", beiEingabe);
+    } else {
+      vorschlagZeichnen(mitAnderem(K.geraete), "Zum Code " + c + " ist kein Gerätetyp hinterlegt. Bitte wählen Sie Ihr Getriebe selbst aus – oder „Anderes Steuergerät“, wenn es nicht in der Liste steht. Der Code wird mit dem Auftrag gespeichert.", "ist-neutral", beiEingabe);
+    }
+  }
+  function pruefe1() {
+    var e = [], G = Z.geraet;
+    if (G.weg === "katalog" && !G.gruppe) { e.push(["g-gruppe", "Bitte wählen Sie einen Hersteller bzw. eine Getriebefamilie."]); }
+    if (G.weg === "teilenummer" && trim(G.teilenummer).length < 3) { e.push(["g-teilenummer", "Bitte geben Sie die Teilenummer ein (mindestens 3 Zeichen)."]); }
+    if (G.weg === "fehlercode" && codeNormalisieren(G.code).length < 4) { e.push(["g-code", "Bitte geben Sie einen Fehlercode ein, z. B. P1735."]); }
+    if (!e.length && !geraet(G.id)) { e.push(["g-geraet", "Bitte wählen Sie einen Gerätetyp aus."]); }
+    return e;
+  }
+  function nach1() {
+    var c;
+    if (Z.geraet.weg === "teilenummer" && !trim(Z.fahrzeug.getriebeNr)) { Z.fahrzeug.getriebeNr = trim(Z.geraet.teilenummer).toUpperCase(); }
+    if (Z.geraet.weg === "fehlercode") { c = codeNormalisieren(Z.geraet.code); if (c && Z.fahrzeug.codes.indexOf(c) === -1) { Z.fahrzeug.codes.unshift(c); } }
+    Z.fahrzeug.symptome = Z.fahrzeug.symptome.filter(function (s) { return symptomListe().indexOf(s) !== -1; });
+  }
+
+  /* ---------------- Schritt 2: Fahrzeug & Fehler ---------------- */
+  function codeHinzufuegen(roh) {
+    var teile = String(roh).split(/[,;\s]+/), neu = 0;
+    teile.forEach(function (t) {
+      var c = codeNormalisieren(t);
+      if (/^[A-Z0-9.]{3,10}$/.test(c) && Z.fahrzeug.codes.indexOf(c) === -1 && Z.fahrzeug.codes.length < 20) { Z.fahrzeug.codes.push(c); neu++; }
+    });
+    if (neu) { setzen("fahrzeug.codes", Z.fahrzeug.codes); }
+    return neu;
+  }
+  function chipsZeichnen() {
+    var box = document.getElementById("f-codes-liste");
+    if (!box) { return; }
+    leeren(box);
+    Z.fahrzeug.codes.forEach(function (c) {
+      box.appendChild(h("li", { class: "ozk-chip" }, h("span", { text: c }),
+        h("button", { type: "button", "aria-label": "Fehlercode " + c + " entfernen", text: "×", onclick: function () {
+          setzen("fahrzeug.codes", Z.fahrzeug.codes.filter(function (x) { return x !== c; }));
+          chipsZeichnen(); ansage("Fehlercode " + c + " entfernt"); var ein = document.getElementById("f-codes"); if (ein) { ein.focus(); }
+        } })));
+    });
+  }
+  function schritt2() {
+    var g = geraet(Z.geraet.id), F = Z.fahrzeug, jahr = new Date().getFullYear(), eingabeCodes, inhalt = [];
+    function codesUebernehmen() {
+      var roh = eingabeCodes.value;
+      if (!trim(roh)) { return; }
+      if (codeHinzufuegen(roh)) { eingabeCodes.value = ""; chipsZeichnen(); fehlerEntfernen("f-beschreibung"); ansage("Fehlercode hinzugefügt"); }
+      else { ansage("Code nicht übernommen: bitte 3 bis 10 Zeichen ohne Sonderzeichen eingeben"); }
+    }
+    if (g) {
+      inhalt.push(h("div", { class: "ozk-zweispaltig" },
+        hinweisListe("Das senden Sie ein", g.einsenden, "ist-ok"),
+        hinweisListe("Das bitte nicht einsenden", g.nichtEinsenden, "")));
+    }
+    inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: "Fahrzeug" }),
+      h("div", { class: "ozk-felder" },
+        feld({ id: "f-marke", pfad: "fahrzeug.marke", name: "Marke", pflicht: true, max: 40, platzhalter: "z. B. Volkswagen" }),
+        feld({ id: "f-modell", pfad: "fahrzeug.modell", name: "Modell", pflicht: true, max: 60, platzhalter: "z. B. Tiguan 2.0 TDI" }),
+        feld({ id: "f-baujahr", pfad: "fahrzeug.baujahr", name: "Baujahr", pflicht: true, typ: "number", min: 1980, maxWert: jahr + 1, inputmode: "numeric", platzhalter: "z. B. 2019" }),
+        feld({ id: "f-km", pfad: "fahrzeug.km", name: "Kilometerstand", typ: "number", min: 0, maxWert: 2000000, inputmode: "numeric", platzhalter: "z. B. 128000" }),
+        feld({ id: "f-fin", pfad: "fahrzeug.fin", name: "Fahrzeug-Identnummer (FIN)", gross: true, max: 17, hilfe: "17 Zeichen, steht im Fahrzeugschein unter E. Hilft uns, das passende Gerät eindeutig zuzuordnen." }),
+        feld({ id: "f-getriebenr", pfad: "fahrzeug.getriebeNr", name: "Getriebe- / Teilenummer", gross: true, max: 40, hilfe: "Nummer vom Typenschild des Steuergeräts oder Getriebes." }))));
+
+    eingabeCodes = h("input", { type: "text", id: "f-codes", autocomplete: "off", spellcheck: "false", maxlength: "60", style: "text-transform:uppercase", "aria-describedby": "f-codes-hilfe", placeholder: "z. B. P1735",
+      onkeydown: function (e) { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); codesUebernehmen(); } }, onblur: codesUebernehmen });
+    inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: "Fehlerspeicher" }),
+      h("div", { class: "ozk-feld" },
+        h("label", { for: "f-codes" }, "Fehlercodes", h("span", { class: "ozk-optional", text: " (optional, mehrere möglich)" })),
+        h("div", { class: "ozk-chipzeile" }, eingabeCodes, h("button", { type: "button", class: "ozk-btn ozk-btn-zweit ozk-btn-klein", text: "Hinzufügen", onclick: function () { codesUebernehmen(); eingabeCodes.focus(); } })),
+        h("span", { class: "ozk-hilfe", id: "f-codes-hilfe", text: "Code eingeben und mit Enter oder „Hinzufügen“ übernehmen." }),
+        h("ul", { class: "ozk-chips", id: "f-codes-liste", "aria-label": "Erfasste Fehlercodes" }))));
+    inhalt.push(radioGruppe({ id: "f-ausgelesen", pfad: "fahrzeug.ausgelesen", name: "Wurde der Fehlerspeicher ausgelesen?", stil: "wahl", pflicht: true,
+      optionen: [{ id: "ja", name: "Ja" }, { id: "nein", name: "Nein" }] }));
+    if (F.ausgelesen === "ja") {
+      inhalt.push(h("div", { class: "ozk-felder", style: "margin-top:12px" },
+        feld({ id: "f-diagnose", pfad: "fahrzeug.diagnosegeraet", name: "Verwendetes Diagnosegerät", max: 60, platzhalter: "z. B. VCDS, ODIS, Bosch KTS" })));
+    } else if (F.ausgelesen === "nein") {
+      inhalt.push(h("div", { class: "ozk-hinweis", style: "margin-top:12px" }, h("p", { text: "Tipp: Wenn das Gerät noch eingebaut ist, lassen Sie den Fehlerspeicher auslesen, bevor es ausgebaut oder die Batterie abgeklemmt wird. Danach sind die Einträge unter Umständen nicht mehr abrufbar." })));
+    }
+
+    inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: "Welche Symptome treten auf?" }),
+      h("div", { class: "ozk-haken ist-zweispaltig" }, symptomListe().map(function (s, i) {
+        return h("label", null, h("input", { type: "checkbox", id: "f-symptom-" + i, checked: F.symptome.indexOf(s) !== -1, onchange: function (e) {
+          var liste = Z.fahrzeug.symptome.filter(function (x) { return x !== s; });
+          if (e.target.checked) { liste.push(s); }
+          setzen("fahrzeug.symptome", liste); fehlerEntfernen("f-beschreibung");
+        } }), h("span", { text: s }));
+      }))));
+    inhalt.push(h("div", { class: "ozk-gruppe" }, h("div", { class: "ozk-felder" },
+      feld({ id: "f-beschreibung", pfad: "fahrzeug.beschreibung", name: "Fehlerbeschreibung", typ: "textarea", breit: true, max: 2000, zeilen: 5, pflicht: true,
+        hilfe: "Was passiert genau, seit wann und in welcher Situation? Je genauer, desto gezielter können wir prüfen.", platzhalter: "z. B. Nach etwa 20 Minuten Fahrt blinkt die Ganganzeige, danach kein Kraftschluss mehr …" }),
+      feld({ id: "f-versuche", pfad: "fahrzeug.versuche", name: "Bisherige Reparaturversuche", typ: "textarea", breit: true, max: 1000, zeilen: 3,
+        hilfe: "Wurde das Gerät schon einmal geöffnet oder repariert? Wurden Teile getauscht (z. B. Kupplung, Öl, Sensoren)?" }))));
+    return { titel: "Fahrzeug & Fehler", einleitung: "Diese Angaben stehen später auf der Arbeitskarte und helfen uns bei der Eingangsprüfung.", inhalt: inhalt, danach: chipsZeichnen };
+  }
+  function pruefe2() {
+    var e = [], F = Z.fahrzeug, jahr = new Date().getFullYear(), bj = Number(F.baujahr), fin = trim(F.fin).toUpperCase().replace(/\s/g, ""), offen = document.getElementById("f-codes");
+    if (offen && trim(offen.value)) { codeHinzufuegen(offen.value); }
+    if (!trim(F.marke)) { e.push(["f-marke", "Bitte geben Sie die Fahrzeugmarke an."]); }
+    if (!trim(F.modell)) { e.push(["f-modell", "Bitte geben Sie das Modell an."]); }
+    if (!/^\d{4}$/.test(trim(F.baujahr)) || bj < 1980 || bj > jahr + 1) { e.push(["f-baujahr", "Bitte geben Sie das Baujahr vierstellig an (1980 bis " + (jahr + 1) + ")."]); }
+    if (trim(F.km) && (!/^\d{1,7}$/.test(trim(F.km)) || Number(F.km) > 2000000)) { e.push(["f-km", "Bitte geben Sie den Kilometerstand nur mit Ziffern an."]); }
+    if (fin) {
+      if (fin.length !== 17) { e.push(["f-fin", "Die FIN hat genau 17 Zeichen – eingegeben wurden " + fin.length + "."]); }
+      else if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(fin)) { e.push(["f-fin", "Die FIN enthält nur Ziffern und Buchstaben, jedoch nicht I, O und Q."]); }
+      else { Z.fahrzeug.fin = fin; }
+    }
+    if (!F.ausgelesen) { e.push(["f-ausgelesen", "Bitte geben Sie an, ob der Fehlerspeicher ausgelesen wurde."]); }
+    if (trim(F.beschreibung).length < 10) { e.push(["f-beschreibung", "Bitte beschreiben Sie den Fehler in mindestens einem kurzen Satz."]); }
+    return e;
+  }
+
+  /* ---------------- Schritt 3: Leistung & Optionen ---------------- */
+  function schritt3() {
+    var g = geraet(Z.geraet.id), L = Z.leistung, inhalt = [], optionen = [];
+    inhalt.push(h("div", { class: "ozk-hinweis ist-neutral" },
+      h("h3", { text: (g.istAnfrage ? "Anfrage: " : "Prüfung und Reparatur: ") + g.name }),
+      h("p", { text: geraetPreisText(g) }),
+      g.bearbeitungstage ? h("p", { text: "Übliche Bearbeitungszeit nach Eingang: " + g.bearbeitungstage }) : null,
+      zahl(K.allgemein.garantieMonate) ? h("p", { text: "Garantie auf die Reparatur: " + zahl(K.allgemein.garantieMonate) + " Monate" }) : null,
+      zahl(K.allgemein.pruefpauschaleNetto) ? h("p", { text: "Wird nach der Prüfung keine Reparatur beauftragt, berechnen wir eine Prüfpauschale von " + preisText(K.allgemein.pruefpauschaleNetto, "") + "." }) : null));
+
+    if (K.express.aktiv !== false) { optionen.push(hakenKarte({ id: "l-express", pfad: "leistung.express", name: K.express.bezeichnung, beschreibung: K.express.beschreibung, preis: "Aufpreis: " + preisText(K.express.aufpreisNetto, "auf Anfrage") })); }
+    if (K.einbau.aktiv !== false) { optionen.push(hakenKarte({ id: "l-einbau", pfad: "leistung.einbau", name: K.einbau.bezeichnung, beschreibung: K.einbau.beschreibung, preis: "Preis: " + preisText(K.einbau.preisNetto, "wird im Kostenvoranschlag ausgewiesen") })); }
+    if (optionen.length) { inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: "Zusatzoptionen" }), h("div", { class: "ozk-karten" }, optionen))); }
+    if (einbauGewaehlt()) { inhalt.push(h("div", { class: "ozk-hinweis", style: "margin-top:12px", role: "status" }, h("p", { text: "Im nächsten Schritt nennen Sie uns Ihren Wunschtermin. Die Versandangaben entfallen." }))); }
+
+    inhalt.push(radioGruppe({ id: "l-freigabe", pfad: "leistung.freigabeArt", name: "Kostenfreigabe", pflicht: true,
+      hilfe: "Legen Sie fest, ob wir nach der Eingangsprüfung in jedem Fall erst Rücksprache halten sollen.",
+      optionen: [
+        { id: "kv", name: "Bitte immer erst einen Kostenvoranschlag senden", beschreibung: "Wir beginnen mit der Reparatur erst nach Ihrer Freigabe." },
+        { id: "limit", name: "Reparatur ohne Rückfrage freigeben bis zu einem Höchstbetrag", beschreibung: "Liegt der Reparaturpreis darunter, beginnen wir direkt. Liegt er darüber, melden wir uns vorher." }] }));
+    if (L.freigabeArt === "limit") {
+      inhalt.push(h("div", { class: "ozk-felder", style: "margin-top:12px" },
+        feld({ id: "l-freigabebis", pfad: "leistung.freigabeBis", name: "Reparatur ohne Rückfrage freigeben bis … € (inkl. MwSt.)", pflicht: true, typ: "number", min: 1, maxWert: 20000, inputmode: "numeric", platzhalter: "z. B. 500" })));
+    }
+    return { titel: "Leistung & Optionen", einleitung: "Bestimmen Sie den Umfang und wie wir nach der Eingangsprüfung vorgehen sollen.", inhalt: inhalt };
+  }
+  function pruefe3() {
+    var e = [], L = Z.leistung, b = Number(L.freigabeBis);
+    if (L.freigabeArt === "limit" && (!/^\d+([.,]\d{1,2})?$/.test(trim(L.freigabeBis)) || !(b >= 1) || b > 20000)) { e.push(["l-freigabebis", "Bitte geben Sie den Höchstbetrag in Euro an (nur Ziffern, 1 bis 20.000)."]); }
+    return e;
+  }
+  function nach3() {
+    Z.leistung.freigabeBis = trim(Z.leistung.freigabeBis).replace(",", ".");
+    var erlaubt = zahlungsOptionen().map(function (z) { return z.id; });
+    if (Z.kontakt.zahlung && erlaubt.indexOf(Z.kontakt.zahlung) === -1) { Z.kontakt.zahlung = ""; }
+  }
+
+  /* ---------------- Schritt 4: Versand oder Termin ---------------- */
+  function schritt4() { return einbauGewaehlt() ? schritt4Termin() : schritt4Versand(); }
+  function schritt4Versand() {
+    var V = Z.versand, inhalt = [], g = geraet(Z.geraet.id);
+    if (g.istAnfrage) { inhalt.push(h("div", { class: "ozk-hinweis", style: "margin-bottom:6px" }, h("p", { text: "Bitte senden Sie das Gerät erst ein, nachdem wir Ihre Anfrage bestätigt haben. Ihre Versandwünsche können Sie trotzdem schon angeben." }))); }
+    inhalt.push(radioGruppe({ id: "v-hin", pfad: "versand.hin", name: "Hinweg: Wie kommt das Gerät zu uns?", pflicht: true, optionen: hinwegOptionen() }));
+    if (V.hin === "selbst") {
+      inhalt.push(h("div", { class: "ozk-zweispaltig", style: "margin-top:12px" },
+        h("div", null, h("p", { class: "ozk-hilfe", text: "Versandadresse", style: "margin-bottom:6px" }), adressBlock(),
+          h("p", { style: "margin-top:12px" }, h("a", { class: "ozk-btn ozk-btn-zweit", href: K.versand.dhlOnlineFrankierungUrl, target: "_blank", rel: "noopener noreferrer" }, "Zur DHL Online Frankierung", h("span", { class: "ozk-nur-sr", text: " (öffnet dhl.de in neuem Tab)" }))),
+          h("p", { class: "ozk-hilfe", style: "margin-top:6px", text: "Die Paketmarke kaufen Sie direkt bei DHL. Sie können auch jeden anderen Paketdienst nutzen." })),
+        hinweisListe("So verpacken Sie richtig", K.versand.verpackungstipps, "ist-neutral")));
+    } else if (V.hin === "label") {
+      inhalt.push(h("div", { class: "ozk-hinweis ist-neutral", style: "margin-top:12px" }, h("p", { text: "Nach Eingang Ihres Auftrags senden wir das Versandlabel an die E-Mail-Adresse, die Sie im nächsten Schritt angeben." })));
+    } else if (V.hin === "abgabe") {
+      inhalt.push(h("div", { class: "ozk-zweispaltig", style: "margin-top:12px" },
+        h("div", null, h("p", { class: "ozk-hilfe", text: "Abgabe bei", style: "margin-bottom:6px" }), adressBlock()),
+        h("div", { class: "ozk-hinweis ist-neutral" }, h("h4", { text: "Öffnungszeiten" }), h("p", { text: K.firma.oeffnungszeiten }), h("p", { text: "Bitte bringen Sie die ausgedruckte Arbeitskarte mit." }))));
+    }
+    inhalt.push(radioGruppe({ id: "v-rueck", pfad: "versand.rueck", name: "Rückweg: Wie erhalten Sie das Gerät zurück?", pflicht: true, zweispaltig: true,
+      optionen: rueckwegOptionen().map(function (r) { return { id: r.id, name: r.name, beschreibung: r.beschreibung, preis: r.id === "abholung" && zahl(r.preisNetto) === 0 ? "ohne Versandkosten" : preisText(r.preisNetto, "Preis wird im Kostenvoranschlag ausgewiesen") }; }) }));
+    if (K.versand.versicherung.aktiv !== false && V.rueck && V.rueck !== "abholung") {
+      inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: "Versicherung" }), h("div", { class: "ozk-karten" },
+        hakenKarte({ id: "v-versicherung", pfad: "versand.versicherung", name: K.versand.versicherung.bezeichnung, beschreibung: K.versand.versicherung.beschreibung, preis: "Aufpreis: " + preisText(K.versand.versicherung.preisNetto, "wird im Kostenvoranschlag ausgewiesen") }))));
+      if (V.versicherung) {
+        inhalt.push(h("div", { class: "ozk-felder", style: "margin-top:12px" },
+          feld({ id: "v-warenwert", pfad: "versand.warenwert", name: "Zu versichernder Warenwert in €", typ: "number", min: 1, maxWert: 25000, inputmode: "numeric", platzhalter: "z. B. 1500" })));
+      }
+    }
+    return { titel: "Versand", einleitung: "Legen Sie fest, wie das Gerät zu uns kommt und wie Sie es zurückerhalten möchten.", inhalt: inhalt };
+  }
+  function schritt4Termin() {
+    var inhalt = [];
+    inhalt.push(h("div", { class: "ozk-hinweis ist-neutral" }, h("p", { text: "Das ist eine Terminanfrage. Wir bestätigen Ihnen den Termin persönlich – erst dann ist er verbindlich." }), h("p", { text: "Öffnungszeiten: " + K.firma.oeffnungszeiten })));
+    inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: "Wunschtermin" }), h("div", { class: "ozk-felder" },
+      feld({ id: "t-wunsch1", pfad: "termin.wunsch1", name: "Wunschtermin", typ: "date", pflicht: true, min: heuteIso() }),
+      feld({ id: "t-wunsch2", pfad: "termin.wunsch2", name: "Ausweichtermin", typ: "date", min: heuteIso() }),
+      feld({ id: "t-zeit", pfad: "termin.zeit", name: "Bevorzugte Tageszeit", typ: "select", pflicht: true, optionen: [["egal", "Keine Vorgabe"], ["vormittag", "Vormittags"], ["nachmittag", "Nachmittags"]] }))));
+    inhalt.push(radioGruppe({ id: "t-fahrbereit", pfad: "termin.fahrbereit", name: "Ist das Fahrzeug fahrbereit?", stil: "wahl", pflicht: true,
+      optionen: [{ id: "ja", name: "Ja" }, { id: "nein", name: "Nein, es wird angeliefert" }, { id: "unsicher", name: "Unsicher" }] }));
+    inhalt.push(h("div", { class: "ozk-gruppe" }, h("div", { class: "ozk-felder" },
+      feld({ id: "t-bemerkung", pfad: "termin.bemerkung", name: "Bemerkung zum Termin", typ: "textarea", breit: true, max: 500, zeilen: 3 }))));
+    inhalt.push(h("div", { class: "ozk-gruppe" }, h("h3", { text: "Hier finden Sie uns" }), adressBlock()));
+    return { titel: "Termin in Bochum", einleitung: "Sie bringen das Fahrzeug zu uns – nennen Sie uns bitte, wann es Ihnen passt.", inhalt: inhalt };
+  }
+  function pruefe4() {
+    var e = [], T = Z.termin, V = Z.versand, w;
+    if (einbauGewaehlt()) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(T.wunsch1)) { e.push(["t-wunsch1", "Bitte wählen Sie einen Wunschtermin."]); }
+      else if (T.wunsch1 < heuteIso()) { e.push(["t-wunsch1", "Der Wunschtermin liegt in der Vergangenheit."]); }
+      else if (new Date(T.wunsch1 + "T12:00:00").getDay() === 0) { e.push(["t-wunsch1", "Sonntags haben wir geschlossen – bitte wählen Sie einen anderen Tag."]); }
+      if (T.wunsch2 && (!/^\d{4}-\d{2}-\d{2}$/.test(T.wunsch2) || T.wunsch2 < heuteIso())) { e.push(["t-wunsch2", "Der Ausweichtermin liegt in der Vergangenheit."]); }
+      if (!T.fahrbereit) { e.push(["t-fahrbereit", "Bitte geben Sie an, ob das Fahrzeug fahrbereit ist."]); }
+      return e;
+    }
+    if (!hinwegOptionen().some(function (o) { return o.id === V.hin; })) { e.push(["v-hin", "Bitte wählen Sie, wie das Gerät zu uns kommt."]); }
+    if (!rueckweg(V.rueck)) { e.push(["v-rueck", "Bitte wählen Sie, wie Sie das Gerät zurückerhalten möchten."]); }
+    w = trim(V.warenwert);
+    if (versicherungGewaehlt() && w && (!/^\d+([.,]\d{1,2})?$/.test(w) || Number(w.replace(",", ".")) < 1)) { e.push(["v-warenwert", "Bitte geben Sie den Warenwert in Euro nur mit Ziffern an."]); }
+    return e;
+  }
+  function nach4() {
+    Z.versand.warenwert = trim(Z.versand.warenwert).replace(",", ".");
+    var erlaubt = zahlungsOptionen().map(function (z) { return z.id; });
+    if (Z.kontakt.zahlung && erlaubt.indexOf(Z.kontakt.zahlung) === -1) { Z.kontakt.zahlung = ""; }
+  }
+
+  /* ---------------- Schritt 5: Kontakt & Zahlung ---------------- */
+  function schritt5() {
+    var Ko = Z.kontakt, inhalt = [], werkstatt = Ko.typ === "werkstatt", zahlungen = zahlungsOptionen();
+    inhalt.push(radioGruppe({ id: "k-typ", pfad: "kontakt.typ", name: "Sie beauftragen als", stil: "wahl", pflicht: true,
+      optionen: [{ id: "privat", name: "Privatkunde" }, { id: "werkstatt", name: "Werkstatt / Gewerbe" }],
+      nachWahl: function () { var erlaubt = zahlungsOptionen().map(function (z) { return z.id; }); if (erlaubt.indexOf(Z.kontakt.zahlung) === -1) { Z.kontakt.zahlung = ""; speichern(); } } }));
+    inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: werkstatt ? "Firma und Ansprechpartner" : "Ihre Daten" }),
+      h("div", { class: "ozk-felder" },
+        werkstatt ? feld({ id: "k-firma", pfad: "kontakt.firma", name: "Firma", pflicht: true, max: 80, auto: "organization" }) : null,
+        werkstatt ? feld({ id: "k-ustid", pfad: "kontakt.ustid", name: "USt-IdNr.", gross: true, max: 16, platzhalter: "z. B. DE123456789" }) : null,
+        feld({ id: "k-vorname", pfad: "kontakt.vorname", name: "Vorname", pflicht: true, max: 50, auto: "given-name" }),
+        feld({ id: "k-nachname", pfad: "kontakt.nachname", name: "Nachname", pflicht: true, max: 50, auto: "family-name" }),
+        feld({ id: "k-strasse", pfad: "kontakt.strasse", name: "Straße und Hausnummer", pflicht: true, max: 80, auto: "street-address", breit: true }),
+        feld({ id: "k-plz", pfad: "kontakt.plz", name: "PLZ", pflicht: true, max: 10, auto: "postal-code", inputmode: "numeric" }),
+        feld({ id: "k-ort", pfad: "kontakt.ort", name: "Ort", pflicht: true, max: 60, auto: "address-level2" }),
+        feld({ id: "k-land", pfad: "kontakt.land", name: "Land", pflicht: true, typ: "select", auto: "country-name", optionen: (K.laender || ["Deutschland"]).map(function (l) { return [l, l]; }) }),
+        feld({ id: "k-email", pfad: "kontakt.email", name: "E-Mail-Adresse", pflicht: true, typ: "email", max: 100, auto: "email", inputmode: "email" }),
+        feld({ id: "k-telefon", pfad: "kontakt.telefon", name: "Telefon (für Rückfragen)", pflicht: true, typ: "tel", max: 30, auto: "tel", inputmode: "tel" }),
+        feld({ id: "k-referenz", pfad: "kontakt.referenz", name: "Ihre Referenz", max: 40, hilfe: werkstatt ? "Zum Beispiel Ihre Auftragsnummer oder das Kennzeichen des Kundenfahrzeugs." : "Zum Beispiel das Kennzeichen." }))));
+    if (Ko.land !== (K.laender && K.laender[0]) && !einbauGewaehlt()) {
+      inhalt.push(h("div", { class: "ozk-hinweis", style: "margin-top:12px" }, h("p", { text: "Für den Rückversand ins Ausland gelten abweichende Versandarten und -kosten. Wir nennen sie Ihnen im Kostenvoranschlag." })));
+    }
+    /* Honigtopf gegen automatische Formular-Einsendungen (für Menschen unsichtbar) */
+    inhalt.push(h("div", { class: "ozk-nur-sr", "aria-hidden": "true" }, h("label", { for: "k-website", text: "Dieses Feld bitte leer lassen" }), h("input", { type: "text", id: "k-website", tabindex: "-1", autocomplete: "off", oninput: function (e) { Z.kontakt.website = e.target.value; } })));
+
+    if (!einbauGewaehlt() && Z.versand.rueck !== "abholung") {
+      inhalt.push(h("div", { class: "ozk-gruppe" }, h("div", { class: "ozk-karten" }, hakenKarte({ id: "k-abw", pfad: "kontakt.abwAdresse", name: "Rückversand an eine abweichende Lieferadresse" }))));
+      if (Ko.abwAdresse) {
+        inhalt.push(h("div", { class: "ozk-felder", style: "margin-top:12px" },
+          feld({ id: "k-lname", pfad: "kontakt.lName", name: "Empfänger (Name / Firma)", pflicht: true, max: 80, breit: true }),
+          feld({ id: "k-lstrasse", pfad: "kontakt.lStrasse", name: "Straße und Hausnummer", pflicht: true, max: 80, breit: true }),
+          feld({ id: "k-lplz", pfad: "kontakt.lPlz", name: "PLZ", pflicht: true, max: 10, inputmode: "numeric" }),
+          feld({ id: "k-lort", pfad: "kontakt.lOrt", name: "Ort", pflicht: true, max: 60 })));
+      }
+    }
+    inhalt.push(radioGruppe({ id: "k-kanal", pfad: "kontakt.kanal", name: "Wie sollen wir uns bei Ihnen melden?", stil: "wahl", pflicht: true,
+      optionen: [{ id: "email", name: "E-Mail" }, { id: "telefon", name: "Telefon" }, { id: "whatsapp", name: "WhatsApp" }] }));
+    inhalt.push(radioGruppe({ id: "k-zahlung", pfad: "kontakt.zahlung", name: "Gewünschte Zahlungsart", pflicht: true,
+      hilfe: "Sie zahlen erst, nachdem Sie von uns eine Rechnung erhalten haben. Beim Absenden des Auftrags wird nichts abgebucht.",
+      optionen: zahlungen.map(function (z) { return { id: z.id, name: z.name }; }) }));
+
+    inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", null, "Erklärungen und Einwilligungen", h("span", { class: "ozk-pflicht", "aria-hidden": "true", text: " *" })),
+      h("div", { class: "ozk-haken ozk-zustimmung", style: "gap:8px" }, zustimmungsArten().map(function (art) {
+        var r = K.rechtstexte[art], id = "z-" + art;
+        return h("div", null,
+          h("label", { class: fehler[id] ? "hat-fehler" : null, id: id + "-label" },
+            h("input", { type: "checkbox", id: id, checked: Z.zustimmung[art], "aria-required": "true", "aria-describedby": id + "-fehler", "aria-invalid": fehler[id] ? "true" : null,
+              onchange: function (e) { setzen("zustimmung." + art, e.target.checked); if (fehler[id]) { delete fehler[id]; neuZeichnen(); } } }),
+            h("span", { text: r.text })),
+          r.linkUrl ? h("p", { class: "ozk-hilfe", style: "margin:4px 0 0 44px" }, h("a", { href: r.linkUrl, target: "_blank", rel: "noopener", text: r.linkText || "Text öffnen" }), h("span", { class: "ozk-nur-sr", text: " (öffnet in neuem Tab)" })) : null,
+          h("p", { class: "ozk-feldfehler", id: id + "-fehler", style: "margin-left:44px", text: fehler[id] || "" }));
+      }))));
+    return { titel: "Kontakt & Zahlung", einleitung: "An diese Daten senden wir Kostenvoranschlag, Rechnung und – beim Versand – das reparierte Gerät.", inhalt: inhalt };
+  }
+  function pruefe5() {
+    var e = [], Ko = Z.kontakt, deutschland = Ko.land === "Deutschland", ust = trim(Ko.ustid).toUpperCase().replace(/[\s.]/g, "");
+    if (Ko.typ === "werkstatt" && !trim(Ko.firma)) { e.push(["k-firma", "Bitte geben Sie den Firmennamen an."]); }
+    if (Ko.typ === "werkstatt" && ust) {
+      if (!/^[A-Z]{2}[A-Z0-9]{2,12}$/.test(ust) || (ust.slice(0, 2) === "DE" && !/^DE\d{9}$/.test(ust))) { e.push(["k-ustid", "Bitte prüfen Sie die USt-IdNr. (deutsche Nummern: DE und 9 Ziffern)."]); }
+      else { Z.kontakt.ustid = ust; }
+    }
+    if (!trim(Ko.vorname)) { e.push(["k-vorname", "Bitte geben Sie Ihren Vornamen an."]); }
+    if (!trim(Ko.nachname)) { e.push(["k-nachname", "Bitte geben Sie Ihren Nachnamen an."]); }
+    if (trim(Ko.strasse).length < 4) { e.push(["k-strasse", "Bitte geben Sie Straße und Hausnummer an."]); }
+    if (deutschland ? !/^\d{5}$/.test(trim(Ko.plz)) : trim(Ko.plz).length < 3) { e.push(["k-plz", deutschland ? "Bitte geben Sie eine fünfstellige Postleitzahl an." : "Bitte geben Sie die Postleitzahl an."]); }
+    if (trim(Ko.ort).length < 2) { e.push(["k-ort", "Bitte geben Sie den Ort an."]); }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trim(Ko.email))) { e.push(["k-email", "Bitte geben Sie eine gültige E-Mail-Adresse an, z. B. name@beispiel.de."]); }
+    if (trim(Ko.telefon).replace(/\D/g, "").length < 6 || !/^[0-9+()\/\s.\-]+$/.test(trim(Ko.telefon))) { e.push(["k-telefon", "Bitte geben Sie eine Telefonnummer mit Vorwahl an."]); }
+    if (Ko.abwAdresse && !einbauGewaehlt() && Z.versand.rueck !== "abholung") {
+      if (!trim(Ko.lName)) { e.push(["k-lname", "Bitte geben Sie den Empfänger der Lieferadresse an."]); }
+      if (trim(Ko.lStrasse).length < 4) { e.push(["k-lstrasse", "Bitte geben Sie Straße und Hausnummer der Lieferadresse an."]); }
+      if (trim(Ko.lPlz).length < 3) { e.push(["k-lplz", "Bitte geben Sie die Postleitzahl der Lieferadresse an."]); }
+      if (trim(Ko.lOrt).length < 2) { e.push(["k-lort", "Bitte geben Sie den Ort der Lieferadresse an."]); }
+    }
+    if (!Ko.kanal) { e.push(["k-kanal", "Bitte wählen Sie, wie wir uns bei Ihnen melden sollen."]); }
+    if (!zahlungsOptionen().some(function (z) { return z.id === Ko.zahlung; })) { e.push(["k-zahlung", "Bitte wählen Sie eine Zahlungsart."]); }
+    zustimmungsArten().forEach(function (art) { if (!Z.zustimmung[art]) { e.push(["z-" + art, "Bitte bestätigen Sie: " + K.rechtstexte[art].kurzname + "."]); } });
+    return e;
+  }
+
+  /* ---------------- Schritt 6: Zusammenfassung & Auftrag ---------------- */
+  function preisTabelle() {
+    var pos = preisPositionen(), s = preisSumme();
+    return h("table", { class: "ozk-preise" },
+      h("caption", { class: "ozk-nur-sr", text: "Preisübersicht" }),
+      h("tbody", null, pos.map(function (p) { return h("tr", null, h("th", { scope: "row", text: p.name }), h("td", { text: positionsText(p) })); })),
+      h("tfoot", null, h("tr", null,
+        h("th", { scope: "row", text: s.vollstaendig ? "Voraussichtliche Summe" : "Gesamtpreis" }),
+        h("td", null, s.vollstaendig ? [(s.ab ? "ab " : "") + euro(brutto(s.netto)), h("small", { text: "inkl. " + Math.round(mwst * 100) + " % MwSt. · " + euro(s.netto) + " netto" })]
+          : ["laut Kostenvoranschlag", h("small", { text: "Sie erhalten ihn nach der Eingangsprüfung." })]))));
+  }
+  function schritt6() {
+    var inhalt = [], anfrage = istAnfrage(), text;
+    if (!Z.auftragsnummer) { Z.auftragsnummer = neueAuftragsnummer(); Z.erstelltAm = heuteIso(); speichern(); }
+    text = auftragsText(true);
+    inhalt.push(h("div", { class: "ozk-auftragsnr" }, h("span", { text: anfrage ? "Ihre Anfragenummer" : "Ihre Auftragsnummer" }), h("strong", { id: "ozk-auftragsnummer", text: Z.auftragsnummer }), h("span", { class: "ozk-hilfe", text: "Bitte bei Rückfragen angeben." })));
+    abschnitte().forEach(function (ab) {
+      inhalt.push(h("section", { class: "ozk-abschnitt" },
+        h("div", { class: "ozk-abschnitt-kopf" }, h("h3", { text: ab.titel }),
+          h("button", { type: "button", class: "ozk-btn-text", onclick: function () { gehe(ab.schritt); } }, "Ändern", h("span", { class: "ozk-nur-sr", text: ": " + ab.titel }))),
+        h("dl", null, ab.zeilen.map(function (z) { return [h("dt", { text: z[0] }), h("dd", { text: z[1] })]; }))));
+    });
+    inhalt.push(h("section", { class: "ozk-abschnitt" }, h("div", { class: "ozk-abschnitt-kopf" }, h("h3", { text: "Preisübersicht" })), preisTabelle(),
+      zahl(K.allgemein.garantieMonate) ? h("p", { class: "ozk-hilfe", style: "margin-top:8px", text: "Garantie auf die Reparatur: " + zahl(K.allgemein.garantieMonate) + " Monate." }) : null));
+
+    inhalt.push(h("section", { class: "ozk-gruppe" }, h("h3", { text: einbauGewaehlt() ? "1. Arbeitskarte drucken" : "1. Arbeitskarte / Begleitschein drucken" }),
+      h("p", { class: "ozk-hilfe", style: "margin-bottom:10px", text: einbauGewaehlt() ? "Bringen Sie die ausgedruckte und unterschriebene Arbeitskarte zum Termin mit." : "Drucken Sie die Arbeitskarte aus, unterschreiben Sie sie und legen Sie sie dem Paket bei. Sie enthält die Packliste und einen Adressaufkleber zum Ausschneiden." }),
+      h("button", { type: "button", class: "ozk-btn ozk-btn-zweit", id: "ozk-drucken", onclick: drucken, text: "Arbeitskarte / Begleitschein drucken" })));
+
+    inhalt.push(h("section", { class: "ozk-gruppe" }, h("h3", { text: anfrage ? "2. Anfrage senden" : "2. Auftrag senden" }), sendeBereich(text)));
+    return { titel: anfrage ? "Zusammenfassung & Anfrage" : "Zusammenfassung & Auftrag", einleitung: "Bitte prüfen Sie Ihre Angaben. Über „Ändern“ gelangen Sie zurück zum jeweiligen Schritt.", inhalt: inhalt, danach: druckbogenFuellen };
+  }
+  function sendeBereich(text) {
+    var anfrage = istAnfrage(), kinder = [], betreff = (anfrage ? "Reparaturanfrage " : "Reparaturauftrag ") + Z.auftragsnummer;
+    var mailto = "mailto:" + K.firma.email + "?subject=" + encodeURIComponent(betreff) + "&body=" + encodeURIComponent(text.replace(/\n/g, "\r\n"));
+    var wa = "https://wa.me/" + encodeURIComponent(K.firma.whatsappInternational) + "?text=" + encodeURIComponent(text);
+    var kopierfeld = h("textarea", { class: "ozk-kopiertext", id: "ozk-kopiertext", readOnly: true, rows: 8, "aria-label": "Auftragstext zum Kopieren" });
+    kopierfeld.value = auftragsText(false);
+    function ersatzwege(titel) {
+      return [
+        h("p", { class: "ozk-hilfe", style: "margin:10px 0", text: titel }),
+        h("div", { class: "ozk-aktionen" },
+          h("a", { class: "ozk-btn ozk-btn-primaer", id: "ozk-mailto", href: mailto, onclick: function () { Z.gesendet = "entwurf"; speichern(); } }, (anfrage ? "Anfrage" : "Auftrag") + " per E-Mail senden"),
+          h("a", { class: "ozk-btn ozk-btn-zweit", id: "ozk-whatsapp", href: wa, target: "_blank", rel: "noopener noreferrer", onclick: function () { Z.gesendet = "entwurf"; speichern(); } }, "Per WhatsApp senden", h("span", { class: "ozk-nur-sr", text: " (öffnet WhatsApp in neuem Tab)" }))),
+        h("div", { class: "ozk-hinweis", style: "margin-top:12px" }, h("p", { text: "Wichtig: Es öffnet sich Ihr E-Mail-Programm bzw. WhatsApp mit einem vorbereiteten Text. Der " + (anfrage ? "Anfrage" : "Auftrag") + " ist erst bei uns, wenn Sie die Nachricht dort selbst absenden." })),
+        h("details", { style: "margin-top:12px" }, h("summary", { class: "ozk-btn-text", text: "Es öffnet sich nichts? Text kopieren und selbst senden" }),
+          h("p", { class: "ozk-hilfe", style: "margin-top:8px" }, "Senden Sie den folgenden Text an ", h("a", { href: "mailto:" + K.firma.email, text: K.firma.email }), "."),
+          kopierfeld,
+          h("button", { type: "button", class: "ozk-btn ozk-btn-zweit ozk-btn-klein", style: "margin-top:8px", id: "ozk-kopieren", text: "Text kopieren", onclick: function () {
+            function fertig(ok) { ansage(ok ? "Text wurde kopiert" : "Bitte markieren und mit Strg+C kopieren"); document.getElementById("ozk-kopieren").textContent = ok ? "Kopiert" : "Bitte manuell kopieren (Strg+C)"; }
+            kopierfeld.focus(); kopierfeld.select();
+            try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(kopierfeld.value).then(function () { fertig(true); }, function () { fertig(false); }); } else { fertig(document.execCommand("copy")); } }
+            catch (e) { fertig(false); }
+          } }))
+      ];
+    }
+    if (K.submit.abschlussHinweis) { kinder.push(h("p", { class: "ozk-hilfe", style: "margin-bottom:10px", text: K.submit.abschlussHinweis })); }
+    if (trim(K.submit.endpoint)) {
+      if (sendeStatus.zustand === "ok" || Z.gesendet === "ok") {
+        kinder.push(h("div", { class: "ozk-hinweis ist-ok", id: "ozk-sendestatus", role: "status", tabindex: "-1" },
+          h("h4", { text: (anfrage ? "Anfrage " : "Auftrag ") + Z.auftragsnummer + " wurde übermittelt" }),
+          h("p", { text: "Vielen Dank. Wir melden uns über den gewünschten Kontaktweg bei Ihnen. " + (einbauGewaehlt() || anfrage ? "" : "Bitte denken Sie daran, die Arbeitskarte auszudrucken und dem Paket beizulegen.") }),
+          h("p", null, h("button", { type: "button", class: "ozk-btn-text", id: "ozk-neu", text: "Weiteren Auftrag für ein anderes Gerät beginnen", onclick: zuruecksetzen }))));
+      } else {
+        if (sendeStatus.zustand === "fehler") {
+          kinder.push(h("div", { class: "ozk-hinweis ist-fehler", id: "ozk-sendestatus", role: "alert", tabindex: "-1" }, h("h4", { text: "Der Auftrag konnte nicht übermittelt werden" }), h("p", { text: sendeStatus.text + " Ihre Angaben sind nicht verloren. Bitte versuchen Sie es erneut oder nutzen Sie einen der Wege darunter." })));
+        }
+        kinder.push(h("button", { type: "button", class: "ozk-btn ozk-btn-primaer", id: "ozk-senden", disabled: sendeStatus.zustand === "laeuft", onclick: senden, text: sendeStatus.zustand === "laeuft" ? "Wird gesendet …" : (sendeStatus.zustand === "fehler" ? "Erneut senden" : (anfrage ? "Anfrage senden" : (K.submit.buttonText || "Auftrag senden"))) }));
+        if (sendeStatus.zustand === "fehler") { kinder.push(ersatzwege("Alternativ können Sie den Auftrag selbst an uns schicken:")); }
+      }
+    } else {
+      kinder.push(ersatzwege("Wählen Sie, wie Sie uns den " + (anfrage ? "Anfragetext" : "Auftrag") + " schicken möchten:"));
+    }
+    return h("div", { id: "ozk-sendebereich" }, kinder);
+  }
+  function senden() {
+    var regler = null, uhr = null, ziel = trim(K.submit.endpoint);
+    if (!ziel || sendeStatus.zustand === "laeuft") { return; }
+    if (trim(Z.kontakt.website)) { sendeStatus = { zustand: "fehler", text: "Die automatische Prüfung hat die Übermittlung abgelehnt." }; neuZeichnen("ozk-sendestatus"); return; }
+    sendeStatus = { zustand: "laeuft", text: "" }; neuZeichnen("ozk-senden"); ansage("Auftrag wird gesendet");
+    function ende(ok, text) {
+      if (uhr) { clearTimeout(uhr); }
+      sendeStatus = { zustand: ok ? "ok" : "fehler", text: text || "" };
+      if (ok) { Z.gesendet = "ok"; speichern(); }
+      neuZeichnen("ozk-sendestatus");
+    }
+    try {
+      if (window.AbortController) { regler = new AbortController(); uhr = setTimeout(function () { regler.abort(); }, (zahl(K.submit.zeitlimitSekunden) || 20) * 1000); }
+      window.fetch(ziel, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(datensatz()), signal: regler ? regler.signal : undefined, credentials: "omit" })
+        .then(function (antwort) { if (antwort.ok) { ende(true); } else { ende(false, "Der Server hat mit dem Fehler " + antwort.status + " geantwortet."); } })
+        .catch(function (err) { ende(false, err && err.name === "AbortError" ? "Der Server hat nicht rechtzeitig geantwortet." : "Es besteht keine Verbindung zum Server."); });
+    } catch (e) { ende(false, "Die Übermittlung wird von diesem Browser nicht unterstützt."); }
+  }
+
+  /* ---------------- Druck: Arbeitskarte ---------------- */
+  function druckbogenFuellen() {
+    var bogen = document.getElementById("ozk-druckbogen"), g = geraet(Z.geraet.id), ab = abschnitte(), k = Z.kontakt, einbau = einbauGewaehlt(), F = K.firma, packliste;
+    if (!bogen) { bogen = h("div", { id: "ozk-druckbogen", class: "ozk-druck", "aria-hidden": "true" }); document.body.appendChild(bogen); }
+    leeren(bogen);
+    if (!g) { bogen.appendChild(h("p", { text: "Bitte füllen Sie zuerst den Konfigurator aus – die Arbeitskarte steht im letzten Schritt bereit." })); return; }
+    function block(a, breit) { return h("section", { class: breit ? "ozk-druck-breit" : null }, h("h2", { text: a.titel }), h("dl", null, a.zeilen.map(function (z) { return [h("dt", { text: z[0] }), h("dd", { text: z[1] })]; }))); }
+    packliste = (g.einsenden || []).concat(K.versand.packliste || []);
+    anhaengen(bogen, [
+      h("div", { class: "ozk-druck-kopf" },
+        h("div", null, h("p", { class: "ozk-druck-firma", text: F.name }), h("p", { text: F.zusatz }), h("p", { text: F.strasse + " · " + F.plzOrt }), h("p", { text: "Tel. " + F.telefon + " · WhatsApp " + F.whatsapp + " · " + F.email })),
+        h("div", { class: "ozk-druck-nr" }, h("p", { text: istAnfrage() ? "Anfragenummer" : "Auftragsnummer" }), h("strong", { text: Z.auftragsnummer || "–" }), h("p", { text: "erstellt am " + datumDe(Z.erstelltAm || heuteIso()) }))),
+      h("h1", { text: istAnfrage() ? "Arbeitskarte zur Reparaturanfrage" : (einbau ? "Arbeitskarte zum Reparaturauftrag mit Einbau" : "Arbeitskarte / Begleitschein zum Reparaturauftrag") }),
+      h("p", { class: "ozk-druck-klein", text: einbau ? "Bitte ausgedruckt und unterschrieben zum Termin mitbringen." : "Bitte ausgedruckt und unterschrieben in das Paket legen." }),
+      h("div", { class: "ozk-druck-spalten" },
+        block(ab[0]), block(ab[4]), block(ab[1], true), block(ab[2]), block(ab[3]),
+        h("section", { class: "ozk-druck-breit ozk-druck-preise" }, h("h2", { text: "Preise" }), h("dl", null, preisPositionen().map(function (p) { return [h("dt", { text: p.name }), h("dd", { text: positionsText(p) })]; }),
+          preisSumme().vollstaendig ? [h("dt", { text: "Summe" }), h("dd", { text: preisText(preisSumme().netto, "", preisSumme().ab) })] : null)),
+        h("section", { class: "ozk-druck-breit" }, h("h2", { text: "Bestätigt im Konfigurator" }), h("ul", { class: "ozk-druck-klein ozk-druck-reihe" }, zustimmungsArten().filter(function (art) { return Z.zustimmung[art]; }).map(function (art) { return h("li", { text: "✓ " + K.rechtstexte[art].kurzname }); }))),
+        einbau ? null : h("section", { class: "ozk-druck-breit" }, h("h2", { text: "Packliste – bitte abhaken" }),
+          h("ul", { class: "ozk-druck-check" }, packliste.map(function (p) { return h("li", { text: p }); }), h("li", null, h("span", null, "Weitere beigelegte Teile:", h("span", { class: "ozk-druck-linie", style: "display:block" })))),
+          h("p", { class: "ozk-druck-klein", style: "margin-top:1.5mm", text: "Bitte führen Sie alle beigelegten Teile auf, damit wir den Paketinhalt beim Eingang abgleichen können." })),
+        h("section", { class: "ozk-druck-breit" }, h("h2", { text: "Vermerke der Werkstatt (nicht vom Kunden auszufüllen)" }),
+          h("dl", null, h("dt", { text: "Eingang am" }), h("dd", null, h("span", { class: "ozk-druck-linie", style: "display:block;height:5mm" })), h("dt", { text: "Befund / Bearbeiter" }), h("dd", null, h("span", { class: "ozk-druck-linie", style: "display:block;height:5mm" }))))),
+      h("div", { class: "ozk-druck-unterschrift" }, h("div", { text: "Ort, Datum" }), h("div", { text: "Unterschrift Auftraggeber/in" + (trim(k.vorname + k.nachname) ? " (" + trim(k.vorname + " " + k.nachname) + ")" : "") })),
+      einbau ? null : h("div", { class: "ozk-druck-schnitt" },
+        h("div", null, h("p", { class: "ozk-druck-etikett", text: "Empfänger" }),
+          h("p", { class: "ozk-druck-an" }, F.name, h("br"), F.adresszusatzPaket ? [F.adresszusatzPaket + " · " + Z.auftragsnummer, h("br")] : null, F.strasse, h("br"), F.plzOrt)),
+        h("div", null, h("p", { class: "ozk-druck-etikett", text: "Absender" }),
+          h("p", { class: "ozk-druck-von" }, k.typ === "werkstatt" && trim(k.firma) ? [k.firma, h("br")] : null, trim(k.vorname + " " + k.nachname), h("br"), k.strasse, h("br"), trim(k.plz + " " + k.ort), k.land && k.land !== "Deutschland" ? [h("br"), k.land] : null),
+          h("p", { class: "ozk-druck-klein", style: "margin-top:2mm", text: "Dieser Aufkleber ist keine Paketmarke – das Porto kaufen Sie separat." })))
+    ]);
+  }
+  function drucken() { druckbogenFuellen(); try { window.print(); } catch (e) { ansage("Der Druckdialog konnte nicht geöffnet werden. Bitte nutzen Sie die Druckfunktion Ihres Browsers."); } }
+  window.addEventListener("beforeprint", druckbogenFuellen);
+
+  /* ---------------- Rahmen: Kopf, Ablauf, Fortschritt, Seitenleiste, FAQ ---------------- */
+  function kopfUndRahmen() {
+    var kopf = document.getElementById("ozk-kopf"), abl = document.getElementById("ozk-ablauf"), faq = document.getElementById("ozk-faq"), fuss = document.getElementById("ozk-fuss"), fragen;
+    leeren(kopf); anhaengen(kopf, [h("p", { class: "ozk-marke", text: K.firma.name + " · Einsende-Service" }), h("h1", { text: K.allgemein.titel }), h("p", { text: K.allgemein.einleitung })]);
+    leeren(abl); anhaengen(abl, [h("h2", { id: "ozk-ablauf-titel", text: "So läuft es ab" }), h("ol", null, (K.ablauf || []).map(function (s) { return h("li", null, h("h3", { text: s.titel }), h("p", { text: s.text })); }))]);
+    fragen = (K.faq || []).slice();
+    if (zahl(K.allgemein.garantieMonate)) { fragen.splice(1, 0, { frage: "Gibt es eine Garantie auf die Reparatur?", antwort: "Ja. Auf die von uns ausgeführte Reparatur erhalten Sie " + zahl(K.allgemein.garantieMonate) + " Monate Garantie. Die genauen Bedingungen finden Sie in unseren AGB." }); }
+    leeren(faq); anhaengen(faq, [h("h2", { id: "ozk-faq-titel", text: "Häufige Fragen" }), fragen.map(function (f) { return h("details", null, h("summary", { text: f.frage }), h("p", { text: f.antwort })); })]);
+    leeren(fuss); anhaengen(fuss, h("p", null, K.firma.name + " · " + K.firma.zusatz + " · " + K.firma.strasse + ", " + K.firma.plzOrt + " · ", h("a", { href: K.firma.web, target: "_blank", rel: "noopener", text: K.firma.web.replace(/^https?:\/\//, "") })));
+  }
+  function fortschritt() {
+    var nav = document.getElementById("ozk-fortschritt"), namen = schrittNamen();
+    leeren(nav);
+    nav.appendChild(h("ol", null, namen.map(function (name, i) {
+      var nr = i + 1, klasse = "ozk-fs" + (nr === Z.schritt ? " ist-aktiv" : (nr < Z.schritt ? " ist-fertig" : "")), erreichbar = nr <= Z.maxSchritt && nr !== Z.schritt;
+      var inhalt = [h("span", { class: "ozk-nur-sr", text: "Schritt " + nr + " von " + SCHRITTE + ": " }), h("span", { class: "ozk-fs-name", text: nr + ". " + name }), h("span", { class: "ozk-nur-sr ozk-fs-kurz", text: name + (nr < Z.schritt ? " (erledigt)" : "") })];
+      return h("li", null, erreichbar ? h("button", { type: "button", class: klasse, onclick: function () { gehe(nr); } }, inhalt) : h("span", { class: klasse, "aria-current": nr === Z.schritt ? "step" : null }, inhalt));
+    })));
+    nav.appendChild(h("p", { class: "ozk-fortschritt-text", "aria-hidden": "true" }, "Schritt " + Z.schritt + " von " + SCHRITTE + ": ", h("strong", { text: namen[Z.schritt - 1] })));
+  }
+  function seitenleiste() {
+    var box = document.getElementById("ozk-seitenleiste"), g = geraet(Z.geraet.id), zeilen = [], r, hin, F = K.firma, s = preisSumme();
+    function z(name, wert) { if (trim(wert)) { zeilen.push(h("div", null, h("dt", { text: name }), h("dd", { text: wert }))); } }
+    leeren(box);
+    if (g) {
+      z("Gerät", g.name + (g.kennung && !g.istAnfrage ? " (" + g.kennung + ")" : ""));
+      z("Preis", geraetPreisText(g));
+      if (trim(Z.fahrzeug.marke + Z.fahrzeug.modell)) { z("Fahrzeug", trim(Z.fahrzeug.marke + " " + Z.fahrzeug.modell + (Z.fahrzeug.baujahr ? ", Bj. " + Z.fahrzeug.baujahr : ""))); }
+      if (Z.maxSchritt >= 3) {
+        if (Z.leistung.express && K.express.aktiv !== false) { z("Option", K.express.bezeichnung); }
+        if (einbauGewaehlt()) { z("Ablauf", "Einbau in Bochum" + (Z.termin.wunsch1 ? " – Wunschtermin " + datumDe(Z.termin.wunsch1) : "")); }
+        else {
+          hin = hinwegOptionen().filter(function (o) { return o.id === Z.versand.hin; })[0]; r = rueckweg(Z.versand.rueck);
+          if (hin) { z("Hinweg", hin.name); }
+          if (r) { z("Rückweg", r.name); }
+        }
+        if (s.vollstaendig && Z.maxSchritt >= 4) { z("Voraussichtliche Summe", preisText(s.netto, "", s.ab)); }
+      }
+      if (Z.auftragsnummer && Z.schritt === 6) { z("Auftragsnummer", Z.auftragsnummer); }
+    }
+    box.appendChild(h("section", { class: "ozk-box", "aria-labelledby": "ozk-seite-titel" }, h("h2", { id: "ozk-seite-titel", text: "Ihr Auftrag" }),
+      zeilen.length ? h("dl", null, zeilen) : h("p", { class: "ozk-hilfe", text: "Noch kein Gerät gewählt. Ihre Auswahl erscheint hier." }),
+      h("p", { style: "margin-top:12px" }, loeschenBestaetigen
+        ? [h("span", { class: "ozk-hilfe", text: "Wirklich alle Eingaben löschen? " }), h("button", { type: "button", class: "ozk-btn-text", id: "ozk-loeschen-ja", text: "Ja, löschen", onclick: zuruecksetzen }), " ", h("button", { type: "button", class: "ozk-btn-text", id: "ozk-loeschen-nein", text: "Abbrechen", onclick: function () { loeschenBestaetigen = false; seitenleiste(); var b = document.getElementById("ozk-loeschen"); if (b) { b.focus(); } } })]
+        : h("button", { type: "button", class: "ozk-btn-text", id: "ozk-loeschen", text: "Eingaben löschen", onclick: function () { loeschenBestaetigen = true; seitenleiste(); var b = document.getElementById("ozk-loeschen-ja"); if (b) { b.focus(); } } }))));
+    box.appendChild(h("section", { class: "ozk-box", "aria-labelledby": "ozk-hilfe-titel" }, h("h2", { id: "ozk-hilfe-titel", text: "Fragen? Wir helfen persönlich." }),
+      h("ul", { class: "ozk-kontaktliste" },
+        h("li", null, "Telefon: ", h("a", { href: "tel:" + F.telefonLink, text: F.telefon })),
+        h("li", null, "WhatsApp: ", h("a", { href: "https://wa.me/" + encodeURIComponent(F.whatsappInternational), target: "_blank", rel: "noopener noreferrer", text: F.whatsapp })),
+        h("li", null, "E-Mail: ", h("a", { href: "mailto:" + F.email, text: F.email })),
+        h("li", { class: "ozk-hilfe", text: F.oeffnungszeiten }))));
+  }
+  function zuruecksetzen() {
+    try { window.sessionStorage.removeItem(SPEICHER); } catch (e) { /* nichts zu tun */ }
+    Z = leererZustand(); fehler = {}; sendeStatus = { zustand: "", text: "" }; loeschenBestaetigen = false;
+    zeichnen(true); ansage("Alle Eingaben wurden gelöscht");
+  }
+
+  /* ---------------- Zeichnen und Navigation ---------------- */
+  var BAUER = { 1: schritt1, 2: schritt2, 3: schritt3, 4: schritt4, 5: schritt5, 6: schritt6 };
+  var PRUEFER = { 1: pruefe1, 2: pruefe2, 3: pruefe3, 4: pruefe4, 5: pruefe5 };
+  var DANACH = { 1: nach1, 3: nach3, 4: nach4 };
+  function schrittZeichnen() {
+    var box = document.getElementById("ozk-schritt"), s, liste = Object.keys(fehler);
+    if (Z.schritt > 1 && !geraet(Z.geraet.id)) { Z.schritt = 1; }
+    s = BAUER[Z.schritt]();
+    leeren(box);
+    box.appendChild(h("h2", { id: "ozk-schritt-titel", tabindex: "-1", text: s.titel }));
+    box.appendChild(h("p", { class: "ozk-einleitung", text: s.einleitung }));
+    if (liste.length) {
+      box.appendChild(h("div", { class: "ozk-fehlerliste", id: "ozk-fehlerliste", role: "alert", tabindex: "-1" },
+        h("h3", { text: liste.length === 1 ? "Bitte prüfen Sie eine Angabe" : "Bitte prüfen Sie " + liste.length + " Angaben" }),
+        h("ul", null, liste.map(function (id) { return h("li", null, h("a", { href: "#" + id, text: fehler[id], onclick: function (e) { e.preventDefault(); var el = document.getElementById(id); if (el) { el.focus(); if (el.scrollIntoView) { el.scrollIntoView({ block: "center" }); } } } })); }))));
+    }
+    box.appendChild(h("form", { novalidate: true, id: "ozk-formular", onsubmit: function (e) { e.preventDefault(); if (Z.schritt < SCHRITTE) { weiter(); } } }, s.inhalt,
+      (h("div", { class: "ozk-navigation" },
+        Z.schritt > 1 ? h("button", { type: "button", class: "ozk-btn ozk-btn-zweit", id: "ozk-zurueck", text: "Zurück", onclick: function () { gehe(Z.schritt - 1); } }) : null,
+        Z.schritt < SCHRITTE ? h("button", { type: "submit", class: "ozk-btn ozk-btn-primaer", id: "ozk-weiter", text: Z.schritt === SCHRITTE - 1 ? "Weiter zur Zusammenfassung" : "Weiter" }) : null))));
+    if (s.danach) { s.danach(); }
+  }
+  function zeichnen(fokusTitel) {
+    fortschritt(); schrittZeichnen(); seitenleiste(); speichern(); hoeheMelden();
+    if (fokusTitel) {
+      var t = document.getElementById("ozk-schritt-titel"), w = document.getElementById("ozk-wizard");
+      if (t) { t.focus({ preventScroll: true }); }
+      if (w && w.scrollIntoView && w.getBoundingClientRect().top < 0) { w.scrollIntoView({ block: "start" }); }
+      nachOben();
+    }
+  }
+  /* Neu zeichnen und Tastaturfokus an derselben Stelle halten */
+  function neuZeichnen(fokusId) {
+    var aktiv = document.activeElement, id = fokusId || (aktiv && aktiv.id), ziel;
+    fortschritt(); schrittZeichnen(); seitenleiste(); hoeheMelden();
+    ziel = id ? document.getElementById(id) : null;
+    if (ziel) { try { ziel.focus({ preventScroll: !fokusId }); } catch (e) { ziel.focus(); } }
+  }
+  function gehe(nr) {
+    fehler = {};
+    Z.schritt = Math.min(Math.max(1, nr), Z.maxSchritt);
+    zeichnen(true); ansage("Schritt " + Z.schritt + " von " + SCHRITTE + ": " + schrittNamen()[Z.schritt - 1]);
+  }
+  function weiter() {
+    var liste = PRUEFER[Z.schritt] ? PRUEFER[Z.schritt]() : [], f;
+    fehler = {};
+    if (liste.length) {
+      liste.forEach(function (e) { fehler[e[0]] = e[1]; });
+      speichern(); fortschritt(); schrittZeichnen(); seitenleiste(); hoeheMelden();
+      f = document.getElementById("ozk-fehlerliste");
+      if (f) { f.focus(); if (f.scrollIntoView) { f.scrollIntoView({ block: "start" }); } }
+      nachOben();
+      return;
+    }
+    if (DANACH[Z.schritt]) { DANACH[Z.schritt](); }
+    Z.schritt = Math.min(SCHRITTE, Z.schritt + 1);
+    Z.maxSchritt = Math.max(Z.maxSchritt, Z.schritt);
+    zeichnen(true); ansage("Schritt " + Z.schritt + " von " + SCHRITTE + ": " + schrittNamen()[Z.schritt - 1]);
+  }
+
+  /* ---------------- Einbettung als iframe ---------------- */
+  var eingebettet = false;
+  try { eingebettet = window.parent !== window; } catch (e) { eingebettet = true; }
+  function nachricht(daten) { if (!eingebettet) { return; } try { daten.quelle = "oz-konfigurator"; window.parent.postMessage(daten, "*"); } catch (e) { /* Elternseite nicht erreichbar */ } }
+  function hoeheMelden() { nachricht({ typ: "hoehe", hoehe: Math.ceil(wurzel.getBoundingClientRect().height) }); }
+  function nachOben() { nachricht({ typ: "nach-oben" }); }
+
+  /* ---------------- Start ---------------- */
+  function start() {
+    var p, schema = K.allgemein.farbschema, g, c, t;
+    try { p = new URLSearchParams(window.location.search); } catch (e) { p = null; }
+    if (p && p.get("theme")) { schema = p.get("theme"); }
+    schema = { dark: "dunkel", light: "hell", dunkel: "dunkel", hell: "hell" }[schema] || "auto";
+    wurzel.setAttribute("data-theme", schema);
+    if (eingebettet) { wurzel.className += " ist-eingebettet"; }
+    kopfUndRahmen();
+    if (p && p.get("kopf") === "0") { document.getElementById("ozk-kopf").hidden = true; document.getElementById("ozk-ablauf").hidden = true; }
+    /* Direktlinks von Angebotsseiten: ?geraet=dq381 oder ?code=P1735 (nur solange noch nichts gewählt ist) */
+    if (p && !Z.geraet.id && Z.maxSchritt === 1) {
+      g = geraet(p.get("geraet") || "");
+      c = codeNormalisieren(p.get("code") || "");
+      if (g) { Z.geraet.weg = "katalog"; Z.geraet.gruppe = g.gruppe; Z.geraet.id = g.id; }
+      else if (c && /^[A-Z0-9.]{3,10}$/.test(c)) { Z.geraet.weg = "fehlercode"; Z.geraet.code = c; t = codeTreffer(c); if (t && t.geraete.length === 1) { Z.geraet.id = t.geraete[0]; } }
+    }
+    zeichnen(false);
+    if (eingebettet && window.ResizeObserver) { new ResizeObserver(hoeheMelden).observe(wurzel); }
+  }
+  start();
+})();
+</script>
+</body>
+</html>
