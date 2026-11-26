@@ -322,3 +322,57 @@ Zwei Einschränkungen: „per Post“ nennt die Website nur bei DQ381/DQ500 und 
 Firefox, Safari, echte Mobilgeräte, Papierausdruck, echte Mailprogramme und WhatsApp, Screenreader, Astro-Einbindung nach Weg B, DHL-Angaben, rechtliche und steuerliche Bewertung. Die Seitenfußzeile im Druck (`@page`-Randboxen) funktioniert in Chromium; andere Browser zeigen sie laut README nicht.
 
 Testmaterial der Nachprüfung: derselbe Scratchpad-Ordner, `n1_flow.js`, `n2_money.js`, `n3_small.js`, Ergebnisse in `out2/`.
+
+---
+
+# Stichprobe (26.11.2026, dritter Stand)
+
+**Urteil: nicht freigegeben** – wegen eines einzigen Punkts (S1). N1 ist behoben, N2 ist bis auf diesen einen Fall behoben, die Kernregression ist sauber. S1 ist eine Zeile; danach genügt ein Gegencheck genau dieser Nachstellung.
+
+Geprüft: `konfigurator/index.html` und `README.md` im Stand des Commits `8a3f446`, `vorschau/`. Dateien nicht verändert. Skript `s1_stich.js`, 45 Prüfungen über 32 Seitenaufrufe, nur Chromium.
+
+| Schwere | offen oder neu |
+|---|---|
+| kritisch | 0 |
+| wichtig | 1 |
+| klein | 1 |
+
+## Offen
+
+### S1 (wichtig, Rest von N2/K2) – Start über Direktlink, dann Gerätewechsel: alte Teilenummer bleibt stehen
+
+- **Nachstellen:** `index.html?geraet=dq381` öffnen, „Weiter“. In Schritt 2 „Getriebe- / Teilenummer“ `0GC 325 025 D` eintragen, Auftrag bis zur Zusammenfassung ausfüllen. Fortschrittsleiste → Schritt 1 → Gruppe „Mercedes-Benz“ → „Mercedes 7G-Tronic“ wählen → Fortschrittsleiste → Schritt 6. Gleiches Ergebnis mit `?code=P17BF` (DQ200 vorgewählt), Teilenummer `0AM 927 769 D`, dann Wechsel auf ZF 8HP.
+- **Ist:** Zusammenfassung, Arbeitskarte und Datensatz zeigen „Mercedes 7G-Tronic (722.9)“ mit „Teilenummer 0GC 325 025 D“. Kein Hinweis „Zurückgesetzt wurde …“. Symptome und Schritt-1-Code werden in diesem Fall richtig entfernt, nur die Teilenummer bleibt.
+- **Ursache:** Die Vorwahl per Direktlink in `start()` setzt `Z.geraet.id` direkt (Zeile 2203 bzw. 2204) und nicht `Z.geraet.letzte`. `geraetSetzen()` erkennt den ersten Wechsel deshalb nicht als Wechsel (`if (!alt || alt === id) return;`, Zeile 1028). Bei normaler Auswahl per Klick tritt der Fehler nicht auf (geprüft).
+- **Warum wichtig:** Direktlinks von den Angebotsseiten sind laut README Weg C der vorgesehene Haupteinstieg. Die falsche Teilenummer steht auf der gedruckten Arbeitskarte eines anderen Geräts.
+- **Korrektur:** In `geraetSetzen()` das bisherige Gerät als Rückfall nehmen: vor Zeile 1025 `var vorher = Z.geraet.id;` und in Zeile 1027 `alt = Z.geraet.letzte || vorher;`. Das deckt auch jeden künftigen Weg ab, der `id` direkt setzt. Alternativ in `start()` an beiden Stellen zusätzlich `Z.geraet.letzte` setzen.
+
+### Klein, offen
+
+1. **Nachrichtenkürzung (Klein 4 der Nachprüfung, teilweise behoben).** Die Zwischenstufen sind eingebaut und gekürzte Stellen werden markiert. Mein realistischer Werkstattauftrag (5 Codes, alle Symptome, Lieferadresse, lange Texte) fällt trotzdem weiter direkt auf die Eckdaten-Nachricht (500 Zeichen), weil schon die festen Felder das Budget von 1.650 kodierten Zeichen überschreiten. Hinweis und aufgeklapptes Kopierfeld erscheinen; das Verhalten ist sicher und in der README als Notbehelf beschrieben. Verbesserung nur über die Server-Anbindung oder ein etwas höheres Budget.
+
+## Behoben (nachgestellt)
+
+- **N1 Multitronic:** wieder aktiv; `?geraet=multitronic` wählt sie vor; Teilenummern `01J…`/`0AW…` schlagen sie vor. Keine Gruppe wählt mehr still ein echtes Gerät (VW, Audi, ZF, Mercedes: nichts vorgewählt; nur „Anderes Gerät“ wählt den Sammeleintrag). Eine Gruppe mit einem Gerät verlangt den Klick („Bitte wählen Sie einen Gerätetyp aus“). Die falschen Aussagen sind aus Konfiguration und README entfernt; der Hinweis, dass „per Post“ nur beim DQ381/DQ500 steht, ist ergänzt.
+- **N2 Datenverlust:** Suchweg hin und zurück, Fehlklick auf eine andere Gruppe und zurück, Kürzen und Neutippen des Codes bzw. der Teilenummer in Schritt 1 lassen Gerät, Symptome, Teilenummer und Fortschritt unverändert; die Zusammenfassung ist danach identisch. Bleibt eine falsche Gruppe stehen, hält Schritt 1 mit Fehlermeldung an. Ein echter Gerätewechsel per Klick entfernt nur die Teilenummer aus Schritt 2 und die gerätespezifischen Symptome und zeigt den Hinweis in Schritt 1 und 2. Ausnahme: S1.
+- **Klein 1:** abgelehnter Code und Meldung überstehen das Neuzeichnen; „Weiter“ hält mit Fehlermeldung an; nach Korrektur geht es weiter.
+- **Klein 2:** Anfrage mit eigenen Zustimmungstexten („dieser Anfrage“), auch im Datensatz; Preisfuß „laut Angebot“.
+- **Klein 3:** Freigabegrenze ohne „inkl. MwSt.“, jetzt „Rechnungsbetrag der Reparatur“ mit Erklärung.
+- **Klein 5:** README-Serverbeispiel antwortet bei gefülltem `_hp` mit 422 statt still zu verwerfen.
+- **Klein 6:** Fehlerlinks 48 px und höher.
+- **Klein 7:** Kennungen laut Website ergänzt (02E/0D9, 0GC/0DL/0DE, 0BK/0D5), 6HP19 als offener Punkt vermerkt.
+- **Klein 8:** README Weg C stimmt wieder (Multitronic aktiv).
+
+## Kernregression: in Ordnung
+
+- Alle Wege bis zum Senden: Fehlercode P1735 → DQ381/DQ500, Teilenummer mit Werkstattkunde und Abholung, Katalog, Multitronic, Einbau mit Termin, Anfrage „nicht gelistet“. Datensätze passen zur Anzeige.
+- Zurück ×5 / Weiter ×5 und Neuladen ergeben dieselbe Zusammenfassung; „Eingaben löschen“ leert alles.
+- K1: ungültiger Schritt 5, nachträglicher Einbau und manipulierter Speicher erreichen die Sendeschaltfläche nicht.
+- K2 (Auswahl per Klick): Gerätewechsel entfernt Schritt-1-Code und Gerätesymptom, behält eigene Codes und allgemeine Symptome; veraltete Zahlungsart wird neu verlangt.
+- K3: schlimmster Fall mit Emoji an Position 240 zeigt die Zusammenfassung; `mailto:` und WhatsApp unter 2.000 Zeichen und dekodierbar.
+- Direktlinks `?geraet=`, `?code=`, ungültige Werte, `?theme=dunkel&kopf=0`.
+- Eingeschleustes HTML wird nur als Text angezeigt und unverändert im JSON übertragen.
+- Keine Fremdanfragen und keine Konsolen- oder Seitenfehler über alle 32 Seitenaufrufe; localStorage und Cookies leer.
+- Druck (PDFs angesehen): Minimalauftrag, Anfrage und Einbau je eine Seite; langer Auftrag zwei Seiten, Packliste, Unterschrift und Aufkleber zusammen, Fußzeile mit Nummer und Seitenzahl. Muster-PDF ohne Testreste.
+
+Nicht erneut geprüft: Preisrechnung mit gefüllten Testpreisen, Endpunkt-Fehlerfälle, Tastaturlauf, Kontraste, iframe-Schnipsel (Stand der Nachprüfung; der Änderungsumfang berührt sie nicht). Weiterhin nicht prüfbar: andere Browser, Papierdruck, echte Mailprogramme, Screenreader, Astro-Einbindung.

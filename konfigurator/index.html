@@ -1020,11 +1020,12 @@ window.OZ_KONFIGURATION = {
      Gerät hing (gerätespezifische Symptome, Teilenummer aus Schritt 2). Der Kunde bekommt dazu einen Hinweis.
      Abwählen, ein anderer Suchweg oder ein Fehlklick auf eine andere Gruppe löschen nichts. */
   function geraetSetzen(id) {
-    var alt, neu, entfernt, nummer;
+    var alt, neu, entfernt, nummer, vorher = Z.geraet.id;
     if (Z.geraet.id === id) { return; }
     Z.geraet.id = id;
-    if (!id) { return; }
-    alt = Z.geraet.letzte; Z.geraet.letzte = id;
+    if (!id) { if (vorher) { Z.geraet.letzte = vorher; } return; }
+    /* "vorher" deckt den Start über einen Direktlink (?geraet= / ?code=) ab, bei dem "letzte" noch leer ist. */
+    alt = Z.geraet.letzte || vorher; Z.geraet.letzte = id;
     if (!alt || alt === id) { return; }
     neu = symptomListe();
     entfernt = Z.fahrzeug.symptome.filter(function (s) { return neu.indexOf(s) === -1; });
