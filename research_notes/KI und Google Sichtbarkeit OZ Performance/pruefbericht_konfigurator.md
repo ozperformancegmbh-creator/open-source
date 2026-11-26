@@ -376,3 +376,15 @@ Geprüft: `konfigurator/index.html` und `README.md` im Stand des Commits `8a3f44
 - Druck (PDFs angesehen): Minimalauftrag, Anfrage und Einbau je eine Seite; langer Auftrag zwei Seiten, Packliste, Unterschrift und Aufkleber zusammen, Fußzeile mit Nummer und Seitenzahl. Muster-PDF ohne Testreste.
 
 Nicht erneut geprüft: Preisrechnung mit gefüllten Testpreisen, Endpunkt-Fehlerfälle, Tastaturlauf, Kontraste, iframe-Schnipsel (Stand der Nachprüfung; der Änderungsumfang berührt sie nicht). Weiterhin nicht prüfbar: andere Browser, Papierdruck, echte Mailprogramme, Screenreader, Astro-Einbindung.
+
+## Gegencheck S1 (26.11.2026, nach Korrektur in `geraetSetzen()`)
+
+**Abschließendes Urteil: freigegeben** – als Entwurf zur Übergabe an den Kunden, mit den in der README geführten offenen Punkten (Preise, Recht, Steuer, Fachtexte, Server-Anbindung). Kein kritischer und kein wichtiger Befund mehr offen.
+
+Skript `s2_fix.js`, 16 Prüfungen, alle bestanden, keine Konsolenfehler, keine Fremdanfragen. Datei nicht verändert.
+
+- **S1 behoben.** `?geraet=dq381` → Teilenummer `0GC 325 025 D` in Schritt 2 → Wechsel auf Mercedes 7G-Tronic: Zusammenfassung und Druckbogen ohne die alte Teilenummer und ohne das DQ381-Symptom, allgemeines Symptom bleibt, Hinweis „Zurückgesetzt wurde …“ erscheint. `?code=P17BF` → `0AM 927 769 D` → Wechsel auf ZF 8HP: Teilenummer und Code P17BF sind weg, Hinweis erscheint.
+- **N2 unverändert in Ordnung** (Start per Direktlink und per Klick): Umweg über eine andere Gruppe und über die anderen Suchwege, danach dasselbe Gerät erneut angeklickt → nichts zurückgesetzt, kein Hinweis, Zusammenfassung identisch. Umweg über eine andere Gruppe, danach ein anderes Gerät → Teilenummer aus Schritt 2 und gerätespezifisches Symptom entfernt, Hinweis in Schritt 1 und 2, Zusammenfassung wieder erreichbar.
+- Der Zweig „Abwählen merkt sich das vorherige Gerät“ (`geraetSetzen("")`) wird von der Oberfläche derzeit nicht aufgerufen (kein Aufrufer im Code); er ist nur gelesen, nicht nachstellbar.
+
+Weiter offen, klein: die Nachrichtenkürzung fällt bei umfangreichen Aufträgen früh auf die Eckdaten-Nachricht (siehe oben).
