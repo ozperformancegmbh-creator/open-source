@@ -151,7 +151,8 @@ body.ozk-seite { margin: 0; }
 .ozk-fehlerliste { border: 2px solid var(--ozk-fehler); background: var(--ozk-fehler-flaeche); border-radius: var(--ozk-radius-klein); padding: 12px 14px; margin-bottom: 18px; }
 .ozk-fehlerliste h3 { font-size: 1rem; margin-bottom: 6px; }
 .ozk-fehlerliste ul { list-style: disc; padding-left: 20px; display: grid; gap: 2px; }
-.ozk-fehlerliste a { color: var(--ozk-fehler); font-weight: 600; }
+.ozk-fehlerliste a { display: inline-block; padding-block: 12px; color: var(--ozk-fehler); font-weight: 600; }
+.ozk-fehlerliste ul { gap: 0; }
 
 /* ---------- Auswahlkarten (Radio / Checkbox) ---------- */
 .ozk-karten { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
@@ -551,12 +552,15 @@ window.OZ_KONFIGURATION = {
     },
     datenschutz: {
       text: "[Text vom Anwalt prüfen lassen] Ich habe die Datenschutzhinweise zur Kenntnis genommen. Meine Angaben werden zur Bearbeitung dieses Reparaturauftrags verarbeitet.",
+      // Fassung für unverbindliche Anfragen (nicht gelistete Geräte):
+      textAnfrage: "[Text vom Anwalt prüfen lassen] Ich habe die Datenschutzhinweise zur Kenntnis genommen. Meine Angaben werden zur Bearbeitung dieser Anfrage verarbeitet.",
       linkText: "Datenschutzhinweise öffnen",
       linkUrl: "https://www.ozperformance.de/datenschutz",
       kurzname: "Datenschutzhinweise zur Kenntnis genommen",
     },
     eigentum: {
       text: "[Text vom Anwalt prüfen lassen] Ich bestätige, dass ich Eigentümer des Geräts bzw. des Fahrzeugs bin oder vom Eigentümer bevollmächtigt wurde, diesen Reparaturauftrag zu erteilen.",
+      textAnfrage: "[Text vom Anwalt prüfen lassen] Ich bestätige, dass ich Eigentümer des Geräts bzw. des Fahrzeugs bin oder vom Eigentümer bevollmächtigt wurde, diese Anfrage zu stellen.",
       linkText: "",
       linkUrl: "",
       kurzname: "Eigentum / Vollmacht bestätigt",
@@ -603,11 +607,16 @@ window.OZ_KONFIGURATION = {
      (z. B. ob bei ZF-Getrieben die komplette Mechatronik oder nur das Steuergerät kommen soll).
 
      WELCHE GERÄTE SIND EINGESCHALTET?
-     Eingeschaltet sind die Getriebe, die am 26.11.2026 auf ozperformance.de unter
-     "Mechatronik-Reparatur" genannt waren (DQ200, DQ250, DQ381/DQ500, DL501/0B5, ZF 6HP/8HP,
-     Mercedes 7G-Tronic 722.9). Ob Sie diese auch als EINGESANDTES Gerät annehmen, entscheiden Sie:
-     mit aktiv: false blenden Sie ein Gerät aus. Die Audi Multitronic war dort nicht zu finden und
-     ist deshalb ausgeschaltet.
+     Alle Geräte sind eingeschaltet. Jedes war am 26.11.2026 auf ozperformance.de unter
+     "Mechatronik-Reparatur" genannt (DQ200, DQ250, DQ381/DQ500, DL501/0B5, CVT/multitronic,
+     ZF 6HP19 und 8HP, Mercedes 7G-Tronic 722.9). "Per Post" nennt die Website dort aber nur beim
+     DQ381/DQ500 (und beim 9G-Tronic 725.0, der hier nicht im Katalog steht). Ob Sie die übrigen
+     Getriebe auch als EINGESANDTES Gerät annehmen, entscheiden Sie: mit aktiv: false blenden Sie
+     ein Gerät aus.
+
+     KENNUNGEN: In "kennung" und "nummernAnfang" stehen nur Kennungen, die die Website selbst nennt
+     (Stand 26.11.2026) bzw. die im Auftrag für diesen Katalog vorgegeben waren. Bitte vom Meister
+     prüfen und ergänzen lassen.
      --------------------------------------------------------------------- */
   gruppen: [
     { id: "vw",       name: "VW-Konzern DSG",        hinweis: "VW, Audi, Seat, Cupra, Škoda" },
@@ -631,9 +640,9 @@ window.OZ_KONFIGURATION = {
     },
     {
       id: "dq250", gruppe: "vw", aktiv: true,
-      name: "DSG 6-Gang DQ250", kennung: "02E",
-      nummernAnfang: ["02E"],
-      beschreibung: "6-Gang-Doppelkupplungsgetriebe (DSG) mit nassen Kupplungen, Getriebekennung 02E.",
+      name: "DSG 6-Gang DQ250", kennung: "02E / 0D9",
+      nummernAnfang: ["02E", "0D9"],       // Website: "DSG 6-Gang DQ250 · 02E / 0D9"
+      beschreibung: "6-Gang-Doppelkupplungsgetriebe (DSG) mit nassen Kupplungen, Getriebekennung 02E bzw. 0D9.",
       symptome: [],
       preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
       einsenden: ["Mechatronik bzw. Getriebesteuergerät, so wie ausgebaut"],
@@ -642,9 +651,11 @@ window.OZ_KONFIGURATION = {
     },
     {
       id: "dq381", gruppe: "vw", aktiv: true,
-      name: "DSG 7-Gang DQ381", kennung: "0GC",
-      nummernAnfang: ["0GC"],
-      beschreibung: "7-Gang-Doppelkupplungsgetriebe (DSG), Getriebekennung 0GC.",
+      name: "DSG 7-Gang DQ381", kennung: "0GC / 0DL / 0DE",
+      // Website: "DSG 7-Gang DQ381 / DQ380 · 0GC / 0DL / 0DE". Die Website führt 0DL in einer gemeinsamen
+      // Überschrift auch neben dem DQ500 – eine Nummer, die mit 0DL beginnt, wird hier dem DQ381 zugeordnet.
+      nummernAnfang: ["0GC", "0DL", "0DE"],
+      beschreibung: "7-Gang-Doppelkupplungsgetriebe (DSG), Getriebekennung 0GC, 0DL bzw. 0DE.",
       symptome: ["Fehlercode P1735, P1736 oder P0805 im Fehlerspeicher"],
       preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
       // Zur Orientierung, Stand ozperformance.de/leistungen/mechatronik-reparatur am 26.11.2026:
@@ -681,13 +692,13 @@ window.OZ_KONFIGURATION = {
       angebotUrl: "",
     },
     {
-      id: "multitronic", gruppe: "audi", aktiv: false,
+      id: "multitronic", gruppe: "audi", aktiv: true,
       name: "Audi Multitronic", kennung: "01J / 0AW",
       nummernAnfang: ["01J", "0AW"],
       beschreibung: "Stufenloses Automatikgetriebe, Getriebekennung 01J bzw. 0AW.",
       symptome: [],
       preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
-      // Ausgeschaltet, weil auf der Website nicht als Leistung gefunden. Zum Einschalten oben aktiv: true setzen.
+      // Website (26.11.2026): "CVT / multitronic · 0AW / 01J – Mechatronik-Überholung – Preis auf Anfrage".
       einsenden: ["Mechatronik bzw. Getriebesteuergerät, so wie ausgebaut"],
       nichtEinsenden: ["Getriebeöl (bitte vollständig ablassen)", "Lose Anbauteile, Schrauben und Dichtungen, die nicht fest zum Gerät gehören"],
       angebotUrl: "",
@@ -695,7 +706,7 @@ window.OZ_KONFIGURATION = {
     {
       id: "zf6hp", gruppe: "zf", aktiv: true,
       name: "ZF 6HP (6-Gang-Automatik)", kennung: "6HP",
-      nummernAnfang: ["6HP"],
+      nummernAnfang: ["6HP"],              // Website nennt konkret "ZF 6HP19" – ob weitere 6HP-Varianten angenommen werden, bitte festlegen
       beschreibung: "6-Gang-Automatikgetriebe von ZF.",
       symptome: [],
       preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
@@ -706,7 +717,7 @@ window.OZ_KONFIGURATION = {
     {
       id: "zf8hp", gruppe: "zf", aktiv: true,
       name: "ZF 8HP (8-Gang-Automatik)", kennung: "8HP",
-      nummernAnfang: ["8HP"],
+      nummernAnfang: ["8HP", "0BK", "0D5"],   // Website: "ZF 8HP (auch Hybrid) · 0BK / 0D5"
       beschreibung: "8-Gang-Automatikgetriebe von ZF.",
       symptome: [],
       preisNetto: null, preisIstAbPreis: true, bearbeitungstage: null,
@@ -822,6 +833,7 @@ window.OZ_KONFIGURATION = {
   var sendeStatus = { zustand: "", text: "" };   // "", "laeuft", "ok", "fehler"
   var loeschenBestaetigen = false;
   var gewarnt = {};
+  var codeAbgelehnt = false;
   var codeEntwurf = "";          // abgelehnte Eingabe im Fehlercode-Feld (bleibt zum Korrigieren stehen)
 
   /* ---------------- kleine Helfer ---------------- */
@@ -949,7 +961,7 @@ window.OZ_KONFIGURATION = {
   function leererZustand() {
     return {
       v: 1, schritt: 1, maxSchritt: 1,
-      geraet: { weg: "katalog", gruppe: "", id: "", teilenummer: "", code: "" },
+      geraet: { weg: "katalog", gruppe: "", id: "", teilenummer: "", code: "", letzte: "", hinweis: "" },
       fahrzeug: { marke: "", modell: "", baujahr: "", fin: "", km: "", getriebeNr: "", codes: [], ausgelesen: "", diagnosegeraet: "", symptome: [], versuche: "", beschreibung: "" },
       leistung: { express: false, einbau: false, freigabeArt: "kv", freigabeBis: "" },
       versand: { hin: "", rueck: "", versicherung: false, warenwert: "" },
@@ -1004,14 +1016,26 @@ window.OZ_KONFIGURATION = {
     if (Z.gesendet || sendeStatus.zustand) { Z.gesendet = ""; sendeStatus = { zustand: "", text: "" }; }
     speichern();
   }
-  /* Gerätewechsel: alles, was am alten Gerät hing, wird verworfen; die Folgeschritte müssen neu durchlaufen werden */
+  /* Gerätewahl. Gelöscht wird nur bei einem ECHTEN Wechsel auf ein anderes Gerät – und dann nur, was am alten
+     Gerät hing (gerätespezifische Symptome, Teilenummer aus Schritt 2). Der Kunde bekommt dazu einen Hinweis.
+     Abwählen, ein anderer Suchweg oder ein Fehlklick auf eine andere Gruppe löschen nichts. */
   function geraetSetzen(id) {
+    var alt, neu, entfernt, nummer;
     if (Z.geraet.id === id) { return; }
     Z.geraet.id = id;
-    Z.maxSchritt = Math.min(Z.maxSchritt, 1);
+    if (!id) { return; }
+    alt = Z.geraet.letzte; Z.geraet.letzte = id;
+    if (!alt || alt === id) { return; }
+    neu = symptomListe();
+    entfernt = Z.fahrzeug.symptome.filter(function (s) { return neu.indexOf(s) === -1; });
+    nummer = trim(Z.fahrzeug.getriebeNr);
+    Z.fahrzeug.symptome = Z.fahrzeug.symptome.filter(function (s) { return neu.indexOf(s) !== -1; });
     Z.fahrzeug.getriebeNr = "";
-    Z.fahrzeug.symptome = id ? Z.fahrzeug.symptome.filter(function (s) { return symptomListe().indexOf(s) !== -1; }) : [];
+    if (entfernt.length || nummer) {
+      Z.geraet.hinweis = "Sie haben ein anderes Gerät gewählt. Zurückgesetzt wurde: " + [nummer ? "die Getriebe- / Teilenummer" : "", entfernt.length ? "die Symptome, die nur zum vorherigen Gerät gehörten" : ""].filter(Boolean).join(" und ") + ". Alle übrigen Angaben sind erhalten – bitte prüfen Sie Schritt 2.";
+    }
   }
+  function geraetHinweis(id) { return Z.geraet.hinweis ? h("div", { class: "ozk-hinweis", id: id, role: "status", style: "margin-bottom:14px" }, h("p", { text: Z.geraet.hinweis })) : null; }
   function wegGewechselt() {
     var g = geraet(Z.geraet.id);
     if (Z.geraet.weg === "katalog") { Z.geraet.gruppe = g ? g.gruppe : Z.geraet.gruppe; }
@@ -1059,6 +1083,8 @@ window.OZ_KONFIGURATION = {
     if (Z.kontakt.typ === "privat" && !istAnfrage()) { a.push("widerruf"); }   // Anfrage = noch kein Auftrag, daher keine Erklärung zum Leistungsbeginn
     return a;
   }
+  /* Wortlaut der Erklärung – für Anfragen gibt es je Text eine eigene Fassung (textAnfrage) */
+  function rechtstext(art) { var r = K.rechtstexte[art]; return istAnfrage() && r.textAnfrage ? r.textAnfrage : r.text; }
   function codeNormalisieren(roh) {
     var c = trim(roh).toUpperCase().replace(/[\s\-_]/g, "");
     if (/^[PUBC][0-9A-F]{6}$/.test(c)) { c = c.slice(0, 5); }      // P173500 -> P1735
@@ -1201,7 +1227,7 @@ window.OZ_KONFIGURATION = {
     if (!anfrage) {
       if (K.express.aktiv !== false) { zeile(zeilen, K.express.bezeichnung, l.express ? "Ja" : "Nein"); }
       if (K.einbau.aktiv !== false) { zeile(zeilen, "Einbau in Bochum", l.einbau ? "Ja – Fahrzeug wird gebracht" : "Nein – Gerät wird eingesandt", l.einbau ? "" : "standard"); }
-      zeile(zeilen, "Kostenfreigabe", l.freigabeArt === "limit" && l.freigabeBis ? "Reparatur ohne Rückfrage freigegeben bis " + euro(Math.round(Number(l.freigabeBis) * 100)) + " (inkl. MwSt.)" : "Erst Kostenvoranschlag, Reparatur nur nach Freigabe");
+      zeile(zeilen, "Kostenfreigabe", l.freigabeArt === "limit" && l.freigabeBis ? "Reparatur ohne Rückfrage freigegeben bis " + euro(Math.round(Number(l.freigabeBis) * 100)) + " (Rechnungsbetrag der Reparatur)" : "Erst Kostenvoranschlag, Reparatur nur nach Freigabe");
     }
     a.push({ titel: "Leistung und Optionen", schritt: 3, zeilen: zeilen });
 
@@ -1240,16 +1266,20 @@ window.OZ_KONFIGURATION = {
   }
 
   /* Reiner Text für E-Mail, WhatsApp und Zwischenablage.
-     stufe: null = vollständig; sonst { frei: Zeichen je Freitext, symptome: ja/nein, standard: ja/nein } */
+     stufe: null = vollständig; sonst { frei: Zeichen je Freitext (0 = weglassen), feld: Zeichen je sonstigem Feld, symptome: ja/nein } */
+  var textGekuerzt = false;
   function auftragsText(S, stufe) {
     var t = [], s = preisSumme(), w = wort(), best;
+    function kurz(wert, max, zusatz) { var k = kuerzen(wert, max, zusatz); if (k !== wert) { textGekuerzt = true; } return k; }
+    textGekuerzt = false;
     t.push(w.betreff + " " + Z.auftragsnummer + (Z.fassung > 1 ? " (geänderte Fassung " + Z.fassung + ")" : ""));
     t.push("an " + K.firma.name + " – erstellt am " + datumDe(Z.erstelltAm));
     abschnitte(S).forEach(function (ab) {
       var zeilen = ab.zeilen.filter(function (z) {
         if (!stufe) { return true; }
         if (z[1] === "Nein" || z[2] === "standard") { return false; }
-        if (z[2] === "symptome" && !stufe.symptome) { return false; }
+        if (z[2] === "symptome" && !stufe.symptome) { textGekuerzt = true; return false; }
+        if (z[2] === "frei" && !stufe.frei) { textGekuerzt = true; return false; }
         return true;
       });
       if (!zeilen.length) { return; }
@@ -1257,8 +1287,8 @@ window.OZ_KONFIGURATION = {
       t.push(ab.titel.toUpperCase());
       zeilen.forEach(function (z) {
         var wert = z[1].replace(/\n/g, ", ");
-        if (stufe && (z[2] === "frei" || z[2] === "symptome")) { wert = kuerzen(wert, stufe.frei, " … (vollständig auf der Arbeitskarte)"); }
-        else if (stufe) { wert = kuerzen(wert, 120); }
+        if (stufe && (z[2] === "frei" || z[2] === "symptome")) { wert = kurz(wert, stufe.frei, " … (gekürzt)"); }
+        else if (stufe) { wert = kurz(wert, stufe.feld, " … (gekürzt)"); }
         t.push(z[0] + ": " + wert);
       });
     });
@@ -1277,13 +1307,16 @@ window.OZ_KONFIGURATION = {
     }
     return t.join("\n");
   }
-  /* Kurzfassung für mailto:/WhatsApp, die sicher unter dem Längenbudget bleibt */
+  /* Kurzfassung für mailto:/WhatsApp, die sicher unter dem Längenbudget bleibt. Gekürzt wird in Stufen:
+     erst lange Freitexte, dann Symptome, dann alle Felder; zuletzt bleiben nur die Eckdaten. */
   function nachrichtenText(S) {
-    var stufen = [{ frei: 240, symptome: true }, { frei: 120, symptome: false }, { frei: 60, symptome: false }], i, t, g = geraet(S.geraet.id), w = wort(), n;
+    /* Feste Angaben (Adresse, Codes, Versand) sind wichtiger als Freitext-Ausschnitte und werden zuletzt gekürzt */
+    var stufen = [{ frei: 240, feld: 200, symptome: true }, { frei: 120, feld: 200, symptome: false }, { frei: 60, feld: 200, symptome: false },
+      { frei: 30, feld: 200, symptome: false }, { frei: 0, feld: 200, symptome: false }, { frei: 0, feld: 80, symptome: false }, { frei: 0, feld: 40, symptome: false }], i, t, g = geraet(S.geraet.id), w = wort(), n;
     function passt(text) { return kodieren(text.replace(/\n/g, "\r\n")).length <= NACHRICHT_BUDGET; }
     for (i = 0; i < stufen.length; i++) {
       t = auftragsText(S, stufen[i]);
-      if (passt(t)) { return { text: t, art: i === 0 ? "kurz" : "gekuerzt" }; }
+      if (passt(t)) { return { text: t, art: textGekuerzt ? "gekuerzt" : "kurz" }; }
     }
     for (n = 60; n >= 5; n = Math.floor(n / 2)) {
       t = [w.betreff + " " + Z.auftragsnummer,
@@ -1306,7 +1339,7 @@ window.OZ_KONFIGURATION = {
       fahrzeug: S.fahrzeug, leistung: S.leistung,
       versand: S.leistung.einbau ? null : S.versand, termin: S.leistung.einbau ? S.termin : null,
       kontakt: S.kontakt,
-      zustimmungen: zustimmungsArten().reduce(function (o, art) { o[art] = { erteilt: !!Z.zustimmung[art], text: K.rechtstexte[art].text }; return o; }, {}),
+      zustimmungen: zustimmungsArten().reduce(function (o, art) { o[art] = { erteilt: !!Z.zustimmung[art], text: rechtstext(art) }; return o; }, {}),
       preise: { mwstProzent: mwstProzent, darstellung: preisModus(),
         positionen: preisPositionen().map(function (p) { return { name: p.name, netto: p.p ? p.p.n / 100 : null, brutto: p.p ? p.p.b / 100 : null, anzeige: positionsText(p) }; }),
         summeNetto: s.vollstaendig ? s.n / 100 : null, summeBrutto: s.vollstaendig ? s.b / 100 : null },
@@ -1401,9 +1434,10 @@ window.OZ_KONFIGURATION = {
   }
   function geraetDetails() {
     var g = geraet(Z.geraet.id);
-    if (!g) { return null; }
+    if (!g || !waehlbareGeraete().some(function (x) { return x.id === g.id; })) { return null; }
     return h("div", { class: "ozk-hinweis ist-neutral", style: "margin-top:16px" },
       h("h3", { text: "Ihre Auswahl: " + g.name }),
+      Z.geraet.hinweis ? h("p", { id: "g-wechselhinweis", role: "status", text: Z.geraet.hinweis }) : null,
       h("p", { text: geraetPreisText(g) }),
       g.bearbeitungstage && !g.istAnfrage ? h("p", { text: "Übliche Bearbeitungszeit nach Eingang: " + g.bearbeitungstage }) : null,
       g.istAnfrage ? null : garantieZeile(),
@@ -1419,10 +1453,10 @@ window.OZ_KONFIGURATION = {
       inhalt.push(radioGruppe({ id: "g-gruppe", pfad: "geraet.gruppe", name: "Hersteller / Getriebefamilie", stil: "wahl", pflicht: true,
         optionen: gruppen.map(function (gr) { return { id: gr.id, name: gr.name }; }),
         nachWahl: function (gruppe) {
+          /* Vorgewählt wird nur der Sammeleintrag „nicht gelistet“. Ein echtes Gerät muss der Kunde selbst anklicken,
+             auch wenn die Gruppe nur eines enthält – sonst landet z. B. ein 9G-Tronic-Kunde still beim 722.9. */
           var passend = geraeteListe().filter(function (g) { return g.gruppe === gruppe; });
-          var aktuell = geraet(Z.geraet.id);
-          if (passend.length === 1) { geraetSetzen(passend[0].id); } else if (!aktuell || aktuell.gruppe !== gruppe) { geraetSetzen(""); }
-          speichern();
+          if (passend.length === 1 && passend[0].istAnfrage) { geraetSetzen(passend[0].id); speichern(); }
         } }));
       if (G.gruppe) {
         t = gruppen.filter(function (gr) { return gr.id === G.gruppe; })[0];
@@ -1462,7 +1496,6 @@ window.OZ_KONFIGURATION = {
   function vorschlagZeichnen(text, klasse, beiEingabe) {
     var box = document.getElementById("g-vorschlag"), liste = waehlbareGeraete(), d;
     if (!box) { return; }
-    if (Z.geraet.id && !liste.some(function (g) { return g.id === Z.geraet.id; })) { geraetSetzen(""); geaendert(); }
     leeren(box);
     if (text) { box.appendChild(h("div", { class: "ozk-hinweis " + klasse, style: "margin-top:14px", role: beiEingabe ? "status" : null }, h("p", { text: text }))); }
     if (liste.length) { anhaengen(box, geraeteKarten(liste)); }
@@ -1517,6 +1550,7 @@ window.OZ_KONFIGURATION = {
         } })));
     });
   }
+  function codeMeldung() { return "Nicht übernommen: „" + codeEntwurf + "“. Ein Fehlercode besteht aus 3 bis 10 Buchstaben und Ziffern und enthält mindestens eine Ziffer, z. B. P1735. Beschreibungen gehören in das Feld „Fehlerbeschreibung“. Bitte korrigieren oder das Feld leeren."; }
   var CODE_HILFE = "Code eingeben und mit Enter oder „Hinzufügen“ übernehmen, z. B. P1735. Ein Code besteht aus 3 bis 10 Buchstaben und Ziffern.";
   function schritt2() {
     var g = geraet(Z.geraet.id), F = Z.fahrzeug, eingabeCodes, inhalt = [];
@@ -1526,15 +1560,18 @@ window.OZ_KONFIGURATION = {
       erg = codeHinzufuegen(roh);
       if (erg.neu) { chipsZeichnen(); }
       if (erg.abgelehnt.length) {
-        eingabeCodes.value = erg.abgelehnt.join(" ");
+        codeEntwurf = erg.abgelehnt.join(" "); codeAbgelehnt = true;
+        eingabeCodes.value = codeEntwurf;
         eingabeCodes.setAttribute("aria-invalid", "true");
-        if (hilfe) { hilfe.className = "ozk-feldfehler"; hilfe.textContent = "Nicht übernommen: „" + erg.abgelehnt.join("“, „") + "“. Ein Fehlercode besteht aus 3 bis 10 Buchstaben und Ziffern und enthält mindestens eine Ziffer, z. B. P1735. Beschreibungen gehören in das Feld „Fehlerbeschreibung“."; }
+        if (hilfe) { hilfe.className = "ozk-feldfehler"; hilfe.textContent = codeMeldung(); }
       } else {
+        codeEntwurf = ""; codeAbgelehnt = false;
         eingabeCodes.value = ""; eingabeCodes.removeAttribute("aria-invalid");
         if (hilfe) { hilfe.className = "ozk-hilfe"; hilfe.textContent = CODE_HILFE; }
         if (erg.neu) { ansage("Fehlercode hinzugefügt"); }
       }
     }
+    inhalt.push(geraetHinweis("f-wechselhinweis"));
     if (g && g.istAnfrage) {
       inhalt.push(h("div", { class: "ozk-hinweis" }, h("p", { text: "Bitte senden Sie das Gerät erst ein, nachdem wir Ihre Anfrage bestätigt haben. Beschreiben Sie Gerät und Fehler hier so genau wie möglich." })));
     } else if (g) {
@@ -1555,17 +1592,18 @@ window.OZ_KONFIGURATION = {
               h("button", { type: "button", class: "ozk-btn-text", text: "In Schritt 1 ändern", onclick: function () { gehe(1); } }))
           : feld({ id: "f-getriebenr", pfad: "fahrzeug.getriebeNr", name: "Getriebe- / Teilenummer", gross: true, max: 40, hilfe: "Nummer vom Typenschild des Steuergeräts oder Getriebes." }))));
 
-    eingabeCodes = h("input", { type: "text", id: "f-codes", autocomplete: "off", spellcheck: "false", maxlength: "60", style: "text-transform:uppercase", "aria-describedby": "f-codes-hilfe f-codes-fehler", "aria-invalid": fehler["f-codes"] ? "true" : null, placeholder: "z. B. P1735",
-      oninput: function () { fehlerEntfernen("f-codes"); },
+    eingabeCodes = h("input", { type: "text", id: "f-codes", autocomplete: "off", spellcheck: "false", maxlength: "60", style: "text-transform:uppercase", "aria-describedby": "f-codes-hilfe f-codes-fehler", "aria-invalid": fehler["f-codes"] || codeAbgelehnt ? "true" : null, placeholder: "z. B. P1735",
+      /* Die Eingabe wird als Entwurf gemerkt, damit sie ein Neuzeichnen des Schritts übersteht */
+      oninput: function () { codeEntwurf = eingabeCodes.value; fehlerEntfernen("f-codes"); },
       onkeydown: function (e) { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); codesUebernehmen(); } }, onblur: codesUebernehmen });
     inhalt.push(h("fieldset", { class: "ozk-gruppe" }, h("legend", { text: "Fehlerspeicher" }),
       h("div", { class: "ozk-feld" },
         h("label", { for: "f-codes" }, "Fehlercodes", h("span", { class: "ozk-optional", text: " (optional, mehrere möglich)" })),
         h("div", { class: "ozk-chipzeile" }, eingabeCodes, h("button", { type: "button", class: "ozk-btn ozk-btn-zweit ozk-btn-klein", text: "Hinzufügen", onclick: function () { codesUebernehmen(); eingabeCodes.focus(); } })),
-        h("span", { class: "ozk-hilfe", id: "f-codes-hilfe", role: "status", text: CODE_HILFE }),
+        h("span", { class: codeAbgelehnt && codeEntwurf ? "ozk-feldfehler" : "ozk-hilfe", id: "f-codes-hilfe", role: "status", text: codeAbgelehnt && codeEntwurf ? codeMeldung() : CODE_HILFE }),
         h("span", { class: "ozk-feldfehler", id: "f-codes-fehler", text: fehler["f-codes"] || "" }),
         h("ul", { class: "ozk-chips", id: "f-codes-liste", "aria-label": "Erfasste Fehlercodes" }))));
-    if (fehler["f-codes"] && codeEntwurf) { eingabeCodes.value = codeEntwurf; }
+    if (codeEntwurf) { eingabeCodes.value = codeEntwurf; }
     inhalt.push(radioGruppe({ id: "f-ausgelesen", pfad: "fahrzeug.ausgelesen", name: "Wurde der Fehlerspeicher ausgelesen?", stil: "wahl", pflicht: true,
       optionen: [{ id: "ja", name: "Ja" }, { id: "nein", name: "Nein" }] }));
     if (F.ausgelesen === "ja") {
@@ -1594,9 +1632,9 @@ window.OZ_KONFIGURATION = {
     var e = [], F = Z.fahrzeug, jahr = new Date().getFullYear(), bj = Number(F.baujahr), fin = trim(F.fin).toUpperCase().replace(/[\s\-]/g, ""), km = trim(F.km).replace(/[.\s]/g, ""), offen;
     if (Z.schritt === 2) {
       offen = document.getElementById("f-codes");
-      codeEntwurf = "";
+      codeEntwurf = ""; codeAbgelehnt = false;
       if (offen && trim(offen.value)) {
-        codeEntwurf = codeHinzufuegen(offen.value).abgelehnt.join(" ");
+        codeEntwurf = codeHinzufuegen(offen.value).abgelehnt.join(" "); codeAbgelehnt = !!codeEntwurf;
         if (codeEntwurf) { e.push(["f-codes", "„" + codeEntwurf + "“ ist kein gültiger Fehlercode (3 bis 10 Buchstaben und Ziffern, mindestens eine Ziffer). Bitte korrigieren oder das Feld leeren."]); }
       }
     }
@@ -1641,7 +1679,7 @@ window.OZ_KONFIGURATION = {
         { id: "limit", name: "Reparatur ohne Rückfrage freigeben bis zu einem Höchstbetrag", beschreibung: "Liegt der Reparaturpreis darunter, beginnen wir direkt. Liegt er darüber, melden wir uns vorher." }] }));
     if (L.freigabeArt === "limit") {
       inhalt.push(h("div", { class: "ozk-felder", style: "margin-top:12px" },
-        feld({ id: "l-freigabebis", pfad: "leistung.freigabeBis", name: "Reparatur ohne Rückfrage freigeben bis … € (inkl. MwSt.)", pflicht: true, max: 12, inputmode: "decimal", platzhalter: "z. B. 500" })));
+        feld({ id: "l-freigabebis", pfad: "leistung.freigabeBis", name: "Reparatur ohne Rückfrage freigeben bis … €", pflicht: true, max: 12, inputmode: "decimal", platzhalter: "z. B. 500", hilfe: "Gemeint ist der Rechnungsbetrag der Reparatur, so wie er Ihnen berechnet wird. Versandkosten zählen nicht mit." })));
     }
     return { titel: "Leistung & Optionen", einleitung: "Bestimmen Sie den Umfang und wie wir nach der Eingangsprüfung vorgehen sollen.", inhalt: inhalt };
   }
@@ -1772,7 +1810,7 @@ window.OZ_KONFIGURATION = {
           h("label", { class: fehler[id] ? "hat-fehler" : null, id: id + "-label" },
             h("input", { type: "checkbox", id: id, checked: Z.zustimmung[art], "aria-required": "true", "aria-describedby": id + "-fehler", "aria-invalid": fehler[id] ? "true" : null,
               onchange: function (e) { setzen("zustimmung." + art, e.target.checked); if (fehler[id]) { delete fehler[id]; neuZeichnen(); } } }),
-            h("span", { text: r.text })),
+            h("span", { text: rechtstext(art) })),
           r.linkUrl ? h("p", { class: "ozk-hilfe ozk-linkzeile", style: "margin:0 0 0 44px" }, h("a", { href: r.linkUrl, target: "_blank", rel: "noopener", text: r.linkText || "Text öffnen" }), h("span", { class: "ozk-nur-sr", text: " (öffnet in neuem Tab)" })) : null,
           h("p", { class: "ozk-feldfehler", id: id + "-fehler", style: "margin-left:44px", text: fehler[id] || "" }));
       }))));
@@ -1806,7 +1844,8 @@ window.OZ_KONFIGURATION = {
   /* ---------------- Schritt 6: Zusammenfassung & Auftrag ---------------- */
   function preisTabelle() {
     var pos = preisPositionen(), s = preisSumme(), m = preisModus(), vor = s.ab ? "ab " : "", fuss;
-    if (!s.vollstaendig) { fuss = ["laut Kostenvoranschlag", h("small", { text: "Sie erhalten ihn nach der Eingangsprüfung." })]; }
+    if (!s.vollstaendig && istAnfrage()) { fuss = ["laut Angebot", h("small", { text: "Sie erhalten es, nachdem wir Ihre Anfrage geprüft haben." })]; }
+    else if (!s.vollstaendig) { fuss = ["laut Kostenvoranschlag", h("small", { text: "Sie erhalten ihn nach der Eingangsprüfung." })]; }
     else if (m === "nettoOhne") { fuss = [vor + euro(s.n) + " netto", h("small", { text: "Umsatzsteuer weisen wir nach Prüfung im Kostenvoranschlag aus." })]; }
     else if (m === "nettoZuerst") { fuss = [vor + euro(s.n) + " netto", h("small", { text: euro(s.b) + " inkl. " + mwstProzent + " % MwSt." })]; }
     else { fuss = [vor + euro(s.b), h("small", { text: "inkl. " + mwstProzent + " % MwSt. · " + euro(s.n) + " netto" })]; }
@@ -1999,6 +2038,7 @@ window.OZ_KONFIGURATION = {
   }
   function seitenleiste() {
     var box = document.getElementById("ozk-seitenleiste"), g = geraet(Z.geraet.id), zeilen = [], r, hin, F = K.firma, s, S;
+    if (g && !waehlbareGeraete().some(function (x) { return x.id === g.id; })) { g = null; }   // Auswahl passt (noch) nicht zum aktuellen Suchweg
     function z(name, wert) { if (trim(wert)) { zeilen.push(h("div", null, h("dt", { text: name }), h("dd", { text: wert }))); } }
     leeren(box);
     try {
@@ -2055,6 +2095,7 @@ window.OZ_KONFIGURATION = {
     var box = document.getElementById("ozk-schritt"), s, liste, u;
     /* Kein Schritt wird gezeigt, solange ein früherer Schritt ungültig ist (schützt auch vor manipuliertem Speicher) */
     if (Z.schritt > 1) { u = ersterFehler(Z.schritt - 1); if (u) { fehlerUebernehmen(u); } }
+    if (Z.schritt >= 3 && Z.geraet.hinweis) { Z.geraet.hinweis = ""; }   // Hinweis zum Gerätewechsel wurde in Schritt 1/2 gezeigt
     try { s = BAUER[Z.schritt](); }
     catch (e) {
       try { window.console.error("[OZ-Konfigurator]", e); } catch (e2) { /* keine Konsole */ }

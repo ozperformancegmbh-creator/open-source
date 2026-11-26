@@ -66,7 +66,9 @@ Die Darstellung richtet sich nach dem Kunden (Angabe in Schritt 5):
 
 **Im Auslieferungszustand sind alle Reparatur- und Versandpreise `null`.** Es wird dem Kunden also kein Betrag gezeigt, den Sie nicht selbst festgelegt haben. Die DHL-Listenpreise stehen nur als Kommentar zur Orientierung in der Datei.
 
-**Welche Geräte sind eingeschaltet?** Die Getriebe, die am 26.11.2026 auf `ozperformance.de/leistungen/mechatronik-reparatur` genannt waren (DQ200, DQ250, DQ381/DQ500, DL501/0B5, ZF 6HP/8HP, Mercedes 7G-Tronic 722.9). Die Audi Multitronic war dort nicht zu finden und ist mit `aktiv: false` ausgeblendet. Ob Sie die eingeschalteten Geräte auch als eingesandtes Teil annehmen, ist ein offener Punkt.
+**Welche Geräte sind eingeschaltet?** Alle. Jedes war am 26.11.2026 auf `ozperformance.de/leistungen/mechatronik-reparatur` genannt (DQ200, DQ250, DQ381/DQ500, DL501/0B5, „CVT / multitronic · 0AW / 01J“, ZF 6HP19 und 8HP, Mercedes 7G-Tronic 722.9). „Per Post“ nennt die Website dort aber nur beim DQ381/DQ500 (und beim 9G-Tronic 725.0, der nicht im Katalog steht). Ob Sie die übrigen Getriebe auch als eingesandtes Teil annehmen, ist ein offener Punkt; mit `aktiv: false` blenden Sie ein Gerät aus.
+
+In Schritt 1 wählt der Kunde das Gerät immer selbst aus, auch wenn eine Gruppe nur ein Gerät enthält. Vorgewählt wird allein der Sammeleintrag „Anderes Steuergerät“. Ein anderer Suchweg, eine andere Gruppe oder das Korrigieren von Code bzw. Teilenummer löschen nichts. Erst wenn tatsächlich ein anderes Gerät gewählt wird, entfallen die Teilenummer aus Schritt 2 und die Symptome, die nur zum alten Gerät gehörten; der Kunde bekommt dazu einen Hinweis.
 
 **Neues Gerät anlegen:** einen vorhandenen Block in `geraete` kopieren, `id` neu vergeben (klein, ohne Leerzeichen), Texte anpassen. **Neuen Fehlercode zuordnen:** in `fehlercodes` ergänzen; nur Codes eintragen, deren Zuordnung fachlich sicher ist. Die mitgelieferten Hinweistexte nennen bewusst nur die Zuordnung Code → Getriebe und keine Fehlerursache.
 
@@ -153,7 +155,7 @@ Beispiel für die Seite `/angebote/getriebesteuergeraet-reparatur-dq381-dq500`: 
 
 **Dieser Weg ist ein Notbehelf und kein Zustand für den Livegang.** Gründe:
 
-- Vorbereitete Nachrichten haben eine technische Längengrenze: Viele Kombinationen aus Browser und Mailprogramm schneiden `mailto:`-Adressen bei etwa 2.000 Zeichen ab, und Umlaute zählen dabei mehrfach. Der Konfigurator hält die Nachricht deshalb unter rund 1.800 Zeichen und kürzt stufenweise: erst lange Freitexte, dann die Symptome; bei sehr umfangreichen Aufträgen enthält die Nachricht nur noch die Eckdaten (Nummer, Gerät, Fahrzeug, Name, Kontakt). Der Kunde sieht dann einen Hinweis und muss den vollständigen Text selbst kopieren und einfügen.
+- Vorbereitete Nachrichten haben eine technische Längengrenze: Viele Kombinationen aus Browser und Mailprogramm schneiden `mailto:`-Adressen bei etwa 2.000 Zeichen ab, und Umlaute zählen dabei mehrfach. Der Konfigurator hält die Nachricht deshalb unter rund 1.800 Zeichen und kürzt in mehreren Stufen: erst lange Freitexte, dann die Symptome, dann entfallen die Freitexte ganz, zuletzt werden auch feste Angaben wie Adressen gekürzt (gekürzte Stellen sind mit „… (gekürzt)“ markiert, und der Kunde sieht einen Hinweis). Erst wenn auch das nicht reicht, enthält die Nachricht nur noch die Eckdaten (Nummer, Gerät, Fahrzeug, Name, Kontakt), und der Kunde muss den vollständigen Text selbst kopieren und einfügen.
 - Kein Mailprogramm eingerichtet, Nachricht nicht abgeschickt, Text nicht eingefügt: Sie bekommen davon nichts mit.
 - Es gibt keine Eingangsbestätigung für den Kunden und keine Prüfung auf Ihrer Seite.
 
@@ -187,7 +189,7 @@ Aufbau des Datensatzes (gekürzt):
 - `zusammenfassungText` enthält den kompletten Auftrag als lesbaren Text und kann unverändert in eine E-Mail übernommen werden.
 - Der Datensatz ist bereinigt: Felder, die zur aktuellen Auswahl nicht gehören, sind leer (z. B. `freigabeBis` ohne Freigabegrenze, `warenwert` ohne Versicherung, `firma` bei Privatkunden); bei Einbau ist `versand` `null`, sonst `termin`.
 - `fassung` zählt hoch, wenn der Kunde nach einem erfolgreichen Senden etwas ändert und erneut sendet (gleiche Auftragsnummer, neue Fassung).
-- `_hp` ist ein für Menschen unsichtbares Feld (Honigtopf). Es muss leer sein. Der Browser blockiert bei gefülltem Feld nicht selbst – **die Prüfung gehört auf den Server**: Aufträge mit gefülltem `_hp` verwerfen.
+- `_hp` ist ein für Menschen unsichtbares Feld (Honigtopf). Es sollte leer sein. Der Browser blockiert bei gefülltem Feld nicht selbst – **die Prüfung gehört auf den Server**. Aufträge mit gefülltem `_hp` dort nicht still verwerfen und dabei „Erfolg“ melden: Das Feld kann auch von einem Passwort-Manager gefüllt worden sein, und der Kunde sähe „übermittelt“, obwohl der Auftrag weg ist. Besser mit einem Fehlerstatus antworten oder den Auftrag zur Sichtung ablegen.
 
 Drei Möglichkeiten für die Gegenstelle:
 
@@ -200,7 +202,10 @@ Drei Möglichkeiten für die Gegenstelle:
    export const POST: APIRoute = async ({ request }) => {
      const auftrag = await request.json();
      if (!auftrag?.auftragsnummer || !auftrag?.kontakt?.email) return new Response("ungültig", { status: 400 });
-     if (auftrag._hp) return new Response(JSON.stringify({ ok: true }), { status: 200 });   // Bot: still verwerfen
+     // Honigtopf gefüllt: NICHT still verwerfen (auch Passwort-Manager füllen solche Felder manchmal aus).
+     // Mit Fehler antworten – der Kunde sieht dann die Fehlermeldung und die Ersatzwege – oder den Auftrag
+     // in eine Prüfablage legen und von Hand sichten.
+     if (auftrag._hp) return new Response(JSON.stringify({ ok: false, grund: "pruefung" }), { status: 422 });
      if (!auftrag?.zustimmungen?.agb?.erteilt || !auftrag?.zustimmungen?.datenschutz?.erteilt) return new Response("ungültig", { status: 400 });
      // 1. serverseitig prüfen (Pflichtfelder, Längen, Zustimmungen), Auftragsnummer + Fassung auf Dubletten prüfen
      // 2. speichern (z. B. Wix-CMS-Sammlung über das Wix SDK)
@@ -249,7 +254,8 @@ Sobald Stufe 2 oder 3 steht: in der Konfiguration `labelService.aktiv: true` set
 **Preise und Leistung**
 
 - [ ] Reparaturpreise je Gerät festlegen (`preisNetto` oder `preisBrutto`) oder bewusst bei „Preis nach Eingangsprüfung“ bleiben. Zur Orientierung, Stand der eigenen Website am 26.11.2026: `/leistungen/mechatronik-reparatur` nennt für DQ381/DQ500 „400 € Steuergerät-Reparatur – Mechatronik ausgebaut anliefern oder per Post“ und „1.200 € Komplettpaket schlüsselfertig“ (Aus- und Einbau, Reparatur, Grundeinstellung und Adaptionsfahrt, Getriebeölwechsel). Die Angebotsseite `/angebote/getriebesteuergeraet-reparatur-dq381-dq500` nennt „ab 1.200 €“ für die Komplettlösung, `/angebote/dq381-dq500-drucksensor-reparatur` „ab 400 €“. Sollen Konfigurator und Website dasselbe zeigen, die Endpreise als `preisBrutto` eintragen und klären, wie sich das Komplettpaket auf „Reparatur“ und „Einbau in Bochum“ verteilt.
-- [ ] Entscheiden, welche Geräte als **eingesandtes Teil** angenommen werden (`aktiv` je Gerät). Eingeschaltet ist, was die Website unter Mechatronik-Reparatur nennt; die Multitronic ist ausgeschaltet.
+- [ ] Entscheiden, welche Geräte als **eingesandtes Teil** angenommen werden (`aktiv` je Gerät). Eingeschaltet sind alle zehn Einträge, weil die Website sie unter Mechatronik-Reparatur nennt; „per Post“ steht dort nur beim DQ381/DQ500.
+- [ ] Getriebekennungen vom Meister prüfen lassen (`kennung`, `nummernAnfang`). Eingetragen ist nur, was die Website nennt: DQ250 02E/0D9, DQ381 0GC/0DL/0DE, ZF 8HP 0BK/0D5, multitronic 0AW/01J. Offen: 0DL steht auf der Website in einer gemeinsamen Überschrift auch neben dem DQ500 (hier dem DQ381 zugeordnet); beim ZF 6HP nennt die Website konkret nur „6HP19“.
 - [ ] Bearbeitungszeiten (`bearbeitungstage`), Garantie (`garantieMonate`) und Prüfpauschale (`pruefpauschaleNetto`) entscheiden. Solange `null`, macht der Konfigurator dazu keine Aussage.
 - [ ] Express-Aufpreis und Preis für Einbau festlegen, oder die Optionen mit `aktiv: false` ausblenden.
 - [ ] Rückversandpreise und Höherversicherung eintragen. Rückversand ins Ausland klären (derzeit nur Hinweis „im Kostenvoranschlag“).
@@ -283,7 +289,7 @@ Sobald Stufe 2 oder 3 steht: in der Konfiguration `labelService.aktiv: true` set
 **Technik**
 
 - [ ] Übermittlungsweg wählen und anbinden (Abschnitt 4), inklusive Bestätigungs-E-Mail an den Kunden. Ohne Endpunkt bleibt nur der E-Mail-/WhatsApp-Notbehelf mit seiner Längengrenze – für den Livegang nicht empfohlen.
-- [ ] Am Server prüfen: Pflichtfelder, alle erforderlichen Zustimmungen, Honigtopf `_hp`, Dubletten (Auftragsnummer + Fassung).
+- [ ] Am Server prüfen: Pflichtfelder, alle erforderlichen Zustimmungen, Dubletten (Auftragsnummer + Fassung). Honigtopf `_hp`: festlegen, ob gefüllte Einsendungen abgelehnt (Fehlerstatus) oder zur Sichtung abgelegt werden – nie still verwerfen.
 - [ ] DHL-Stufe wählen (Abschnitt 5).
 - [ ] Einbindung (Weg A oder B), Verlinkung von den Angebotsseiten, Aufnahme in Sitemap und Navigation.
 - [ ] Farbschema festlegen (`allgemein.farbschema`; die Website ist dunkel).
