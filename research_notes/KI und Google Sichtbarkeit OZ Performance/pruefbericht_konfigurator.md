@@ -228,3 +228,97 @@ Die Grundlagen sind in Ordnung: kein Skript-Einschleusen möglich, keine Fremdan
 ## Testmaterial
 
 Skripte und Ergebnisse liegen unter `/tmp/claude-0/-home-user-open-source/636b991d-d1e6-53a1-a80d-5c89433afd35/scratchpad/pruefer/` (`t1_paths.js` bis `t9_misc.js`, `lib.js`; PDFs und Screenshots in `out/`). Der Ordner ist flüchtig.
+
+---
+
+# Nachprüfung (26.11.2026)
+
+**Urteil: nicht freigegeben** – knapp. Alle drei kritischen Befunde sind behoben, ebenso 10 der 11 wichtigen und fast alle kleinen. Offen sind zwei wichtige Punkte, beide neu durch die Korrekturen entstanden und in wenigen Zeilen behebbar (N1, N2). Danach ist aus meiner Sicht keine erneute Vollprüfung nötig, nur ein Gegencheck dieser beiden Stellen.
+
+Geprüft: `konfigurator/index.html` (2.178 Zeilen, Stand 26.11.2026 05:27), `README.md`, `vorschau/`. Dateien nicht verändert. Eigene Nachstellungen aus dem Erstbericht erneut gefahren, dazu neue Skripte (`n1_flow.js`, `n2_money.js`, `n3_small.js`), wieder nur Chromium.
+
+| Schwere | offen oder neu |
+|---|---|
+| kritisch | 0 |
+| wichtig | 2 |
+| klein | 9 |
+
+## Offen oder neu
+
+### N1 (wichtig, neu) – Multitronic: falsche Begründung, Gruppe führt zum falschen Gerät
+
+- **Nachstellen:** `https://www.ozperformance.de/leistungen/mechatronik-reparatur` abrufen und ohne Beachtung der Großschreibung nach „multitronic“ suchen. Im Konfigurator Schritt 1 → „Audi S tronic / Multitronic“ wählen.
+- **Ist:** Die Website nennt die Multitronic zweimal: „CVT / multitronic · 0AW / 01J – Mechatronik-Überholung – Preis auf Anfrage“ und „Audi multitronic (CVT) … Mechatronik-Überholung auf Anfrage“. Die Aussage „Die Audi Multitronic war dort nicht zu finden“ (Konfiguration Zeile 609 und 690, README Abschnitt 2 und Abschnitt 6) ist also falsch; vermutlich wurde mit großem M gesucht. Im Konfigurator heißt die Gruppe weiter „Audi S tronic / Multitronic“ (Zeile 614). Da nur noch ein Gerät in der Gruppe aktiv ist, wird beim Klick sofort „Audi S tronic 7-Gang DL501“ ausgewählt. Ein Multitronic-Kunde landet so ohne Rückfrage bei einem falschen Gerätetyp. README Weg C führt `multitronic` weiter als gültigen Direktlink; `?geraet=multitronic` bewirkt nichts.
+- **Soll:** Aussage, Gruppenname, Katalog und README passen zusammen.
+- **Korrektur:** Entweder Multitronic wieder einschalten (`aktiv: true`, Zeile 684) – die Texte sind inzwischen neutral genug – oder Gruppe in „Audi S tronic“ umbenennen und `multitronic` aus der README-Liste nehmen. In beiden Fällen die Begründung in Zeile 609/690 und in der README berichtigen. Zusätzlich in `schritt1()` (Zeile 1424) ein einzelnes Gerät nicht still vorwählen, wenn der Gruppenname mehr verspricht; einfacher: Gruppennamen aus den aktiven Geräten ableiten.
+
+### N2 (wichtig, neu) – Wechsel des Suchwegs oder der Gruppe löscht Gerät, Symptome und Teilenummer ohne Warnung
+
+- **Nachstellen:** Auftrag vollständig ausfüllen (Katalog, DQ381, zwei Symptome, Teilenummer in Schritt 2). In der Zusammenfassung „Ändern“ bei Gerät. Nur auf „Teilenummer eingeben“ klicken und wieder zurück auf „Getriebe auswählen“.
+- **Ist:** Gerät abgewählt, alle Symptome gelöscht (auch die allgemeinen), Feld „Getriebe- / Teilenummer“ geleert, Fortschritt auf Schritt 1 zurückgesetzt. Dasselbe passiert bei einem Fehlklick auf eine andere Gruppe und zurück (Symptome weg) und beim Korrigieren des Codes oder der Teilenummer in Schritt 1, sobald die Eingabe kurzzeitig unter die Mindestlänge fällt (vier Zeichen löschen genügt; nach dem Neutippen muss das Gerät neu gewählt werden, die Symptome sind weg). Die übrigen Angaben (Fahrzeug, Beschreibung, Versand, Kontakt, Zustimmungen) bleiben erhalten, und der Kunde wird beim Weitergehen durch Schritt 2 geführt. Er sieht dort aber nur leere Kästchen, keinen Hinweis.
+- **Soll:** Ansehen eines anderen Suchwegs ist folgenlos; gelöscht wird erst, wenn tatsächlich ein anderes Gerät gewählt ist, und dann nur das Gerätespezifische.
+- **Korrektur:** `geraetSetzen("")` (Zeile 1008–1014) soll nichts löschen: Symptome nur filtern, wenn eine neue, nicht leere `id` gesetzt wird; `fahrzeug.getriebeNr` nur leeren, wenn sich das Gerät wirklich ändert (alte und neue `id` beide gesetzt und verschieden). `Z.maxSchritt = 1` ist seit der erneuten Prüfung in `gehe()`/`schrittZeichnen()` nicht mehr nötig und kann entfallen. In `vorschlagZeichnen()` (Zeile 1465) die Auswahl nicht während des Tippens verwerfen, sondern erst in `pruefe1()` bemängeln.
+
+### Klein, offen oder neu
+
+1. **Abgelehnter Fehlercode verschwindet beim nächsten Klick** (Klein 4, teilweise behoben). Die sichtbare Meldung „Nicht übernommen: …“ funktioniert. Klickt der Kunde danach „Fehlerspeicher ausgelesen: Ja/Nein“ oder ein anderes Radiofeld, wird der Schritt neu gezeichnet; Eingabe und Meldung sind weg, „Weiter“ läuft ohne Fehler durch. Korrektur: `codeEntwurf` schon in `codesUebernehmen()` setzen und in `schritt2()` (Zeile 1568) unabhängig von `fehler["f-codes"]` wieder einsetzen.
+2. **Anfrage, Resttexte:** Die Zustimmungstexte zu Datenschutz und Eigentum sprechen weiter von „dieses Reparaturauftrags“ bzw. „diesen Reparaturauftrag zu erteilen“. Die Preisübersicht einer Anfrage endet mit „Gesamtpreis laut Kostenvoranschlag – Sie erhalten ihn nach der Eingangsprüfung“, obwohl noch nichts eingesandt werden soll. Korrektur: eigene Anfrage-Varianten der beiden Texte; Fußzeile bei Anfragen „laut Angebot“.
+3. **Freigabegrenze immer „inkl. MwSt.“** (neu): Feldbeschriftung in Schritt 3 und Zeile „freigegeben bis … (inkl. MwSt.)“ bleiben auch für Werkstätten, denen Preise netto bzw. ohne Umsatzsteuer gezeigt werden. Korrektur: Zusatz nach `preisModus()` wählen (Zeile 1204, 1644) oder neutral „Rechnungsbetrag“ schreiben.
+4. **Nachrichtenkürzung springt früh auf Eckdaten** (neu): Ein realistischer, ausführlicher Werkstattauftrag (lange Beschreibung, 5 Codes, alle Symptome, Lieferadresse) fällt direkt auf die Eckdaten-Nachricht (500 Zeichen bei 1.650 Budget). Der Hinweis erscheint und das Kopierfeld ist aufgeklappt, das ist korrekt und sicher. Es fehlt eine Zwischenstufe (z. B. Freitexte 30 Zeichen, Codes und Versand behalten). In der ersten Stufe werden zudem Nicht-Freitextfelder still auf 120 Zeichen gekürzt (lange Anschrift), ohne Hinweis. Korrektur in `nachrichtenText()` (Zeile 1281).
+5. **Server-Beispiel zum Honigtopf** (neu, README Abschnitt 4): `if (auftrag._hp) return … { ok: true }` verwirft still. Füllt ein Passwort-Manager das unsichtbare Feld, sieht ein echter Kunde „übermittelt“ und der Auftrag ist weg (im Test nachgestellt: Anfrage geht mit `_hp: "http://spam"` raus, Anzeige „wurde übermittelt“). Korrektur: im Beispiel in eine Prüfablage legen statt verwerfen, oder mit 4xx antworten.
+6. **Fehlerlinks in der Fehlerliste** sind bei 360 px nur 20 px hoch (übrige Tippflächen sind jetzt in Ordnung). Korrektur: `.ozk-fehlerliste a { display: inline-block; padding-block: 6px; }`.
+7. **Kennungen laut Website unvollständig:** Die Website führt für DQ381 auch 0DL/0DE, für DQ500 auch 0DL, für DQ250 auch 0D9 und beim ZF 6HP konkret „6HP19“. `nummernAnfang` kennt nur 0GC, 0BH/0BT, 02E; der Katalog nennt „ZF 6HP“ allgemein. Vom Meister festlegen lassen.
+8. **README Weg C** nennt `multitronic` als möglichen Wert (siehe N1).
+9. **Gewollt, nur zur Kenntnis:** Im Notfall-Panel wird der Fehler mit `console.error` protokolliert. Im Normalbetrieb gab es in keinem Lauf Konsolenfehler.
+
+## Zur Entscheidung des Entwicklers (Schalter `aktiv` statt Abschalten)
+
+Für DQ250, DL501, ZF 6HP/8HP und 722.9 ist das vertretbar. Die Mechatronik-Seite der Website führt DQ250 (02E/0D9), DL501 (0B5), ZF 8HP, ZF 6HP19 und im Fließtext „Mercedes 7G-Tronic 722.9“ als Mechatronik-Überholung. Die jetzt gezeigten Texte behaupten nichts Technisches mehr: neutrale Beschreibung („6-Gang-Automatikgetriebe von ZF“), einheitlich „Mechatronik bzw. Getriebesteuergerät, so wie ausgebaut“, keine Einbauorte, keine Ursachen. Der Entwurfsvermerk steht in der Konfiguration, und die README führt „als eingesandtes Teil annehmen?“ als offenen Punkt.
+
+Zwei Einschränkungen: „per Post“ nennt die Website nur bei DQ381/DQ500 und beim 9G-Tronic 725.0; für die übrigen Getriebe ist das Einsenden eine Annahme, die der Inhaber vor dem Livegang bestätigen muss. Und die Begründung für die einzige Abschaltung stimmt nicht (N1).
+
+## Status der Befunde aus dem Erstbericht
+
+| Nr. | Status | Beleg |
+|---|---|---|
+| K1 Prüfung umgehbar | behoben | Sprung zu Schritt 6 mit ungültigem Schritt 5 führt zu Schritt 5 mit Fehlerliste; Einbau nachträglich → Termin wird verlangt; manipulierter Speicher und entfernte Zustimmung nach Neuladen erreichen die Sendeschaltfläche nicht; `senden()` prüft erneut. Nach Korrektur kommt man normal weiter, keine Schleife. |
+| K2 veraltete Angaben | behoben | Gerätewechsel: Schritt-1-Code, Gerätesymptom und Teilenummer verschwinden aus Zusammenfassung, Druck, Text und JSON; von Hand ergänzter Code und allgemeines Symptom bleiben. Zahlungsart wird nach Rückwegwechsel neu verlangt. Lieferadresse entfällt bei Abholung und ist beim Zurückschalten wieder da. (Nebenwirkung siehe N2.) |
+| K3 Emoji-Absturz | behoben | Vier Fälle (Emoji an Position 240, Emoji-Kette, zusammengesetzte Emoji, einzelne Zeichenhälfte) zeigen die Zusammenfassung, gültiges `mailto:`, PDF druckbar. Notfall-Panel mit „Zurück zu Schritt 1“ und „Eingaben löschen“ funktioniert auch nach Neuladen. |
+| W1 Nachrichtenlänge | behoben | Minimal 1.144, schlimmster Fall 1.597 Zeichen; Hinweis und aufgeklapptes Kopierfeld bei Eckdaten. Rest siehe Klein 4. |
+| W2 Rundung | behoben | 59,50 → 70,81; 2,50 → 2,98; 104,50 → 124,36. Formel für alle Centwerte bis 2.000 € nachgerechnet, keine Abweichung, auch Brutto → Netto. |
+| W3 Summe | behoben | 476,00 + 95,20 + 7,69 + 6,99 = 585,88 in Tabelle, Seitenleiste, Druck, Text. |
+| W4 Werkstatt/Ausland | behoben | Inland „400,00 € netto (476,00 € inkl. MwSt.)“, Ausland nur netto mit Vermerk, Hinweis in Schritt 5, offener Punkt „Steuerberater“ in der README. `preisBrutto: 10.49` wird exakt als 10,49 € gezeigt. Rest siehe Klein 3. |
+| W5 Anfrage | behoben | Eigener Schritt-3-Text, „Versandwunsch“, keine Widerrufserklärung, keine Freigabegrenze, eigener Abschlusshinweis, „Übersicht zur Reparaturanfrage“ ohne Packliste, Unterschrift und Aufkleber, „Die Anfrage ist erst bei uns …“. Wechsel Auftrag ↔ Anfrage ergibt sauberen Datensatz und stellt Einbau/Express/Grenze beim Zurückwechseln wieder her. Rest siehe Klein 2. |
+| W6 Überlauf 320 px | behoben | Kein Überlauf bei 320/360/768/1280 und 200 % Zoom, auch mit 80-Zeichen-Wörtern. |
+| W7 Druck | behoben | Minimalauftrag, Einbau und Anfrage je eine Seite; langer Auftrag zwei Seiten ohne Leerfläche; Packliste, Unterschrift und Aufkleber bleiben zusammen; Fußzeile mit Nummer und „Seite x von y“; Unterschriftszeile nennt die Nummer. Das neue Muster-PDF hat zwei Seiten, weil der Abschlussblock als Ganzes umbricht – in Ordnung. |
+| W8 „ab 400 €“ | behoben | Aussagen stimmen jetzt mit der Website überein (400 € Steuergerät-Reparatur „per Post“, 1.200 € Komplettpaket, Angebotsseiten 1.200 € bzw. 400 €), nachgeprüft am 26.11.2026. |
+| W9 Fachaussagen | weitgehend behoben | Hinweise nur noch „wird häufig bei … gemeldet“, Symptome als Kundenbeobachtung, Teilenummer nur am Anfang und „könnte passen“, Versicherungstext neutral. Offen: N1, Klein 7. |
+| W10 Vorschau | behoben | Muster-PDF ohne Testreste, E-Mail bricht nicht mehr im Wort, Nummer auf dem Aufkleber einzeilig, Datum deutsch. |
+| W11 JSON-Reste | behoben | `freigabeBis`, `versicherung`, `warenwert`, `firma`, `ustid`, `diagnosegeraet`, Lieferadresse leer, wenn nicht zutreffend. |
+| Klein 1–3 | behoben | Fortschrittsknöpfe und Tippflächen groß genug, Platzhalter 6,7 : 1. |
+| Klein 4 | teilweise | siehe oben. |
+| Klein 5 | behoben | Sonntag auch beim Ausweichtermin abgelehnt; Feiertage als Hinweistext. |
+| Klein 6–8 | behoben | Betragsfelder nehmen „499,90“, „1.500“, „1.500,00“; Obergrenze Warenwert; FIN mit Leerzeichen; Konfigurationswarnungen in der Konsole. |
+| Klein 9–10 | behoben | Wortwahl; Strg+P vor Schritt 6 druckt nur einen Hinweis. |
+| Klein 11–13 | behoben | `_hp` im Datensatz, Fassungszähler, Hinweis bei Zeitüberschreitung, `erfolgNurMitOkTrue`. Rest siehe Klein 5. |
+| Klein 14–19 | behoben | FAQ-Text, Impressum/Datenschutz im Fuß, `noindex`, `1rem`, Fokusrahmen an der Fehlerliste, Aufkleber bei langen Namen, `zahlungsHinweis` in der Konfiguration. |
+| Klein 20 | behoben | Beide Wendungen umformuliert. |
+| README R1–R5 | behoben | Preise belegt, Rangfolge `data-theme` beschrieben und im Code umgesetzt, Skripte im Layout, `file://`-Hinweis, Längengrenze erklärt. Offene-Punkte-Liste um Steuer, Anfragen, Öffnungszeiten, Serverprüfungen ergänzt. |
+| README R6 | unverändert | DHL-Preise und API-Angaben weiter ungeprüft, jetzt so gekennzeichnet. |
+
+## Erneut geprüft und in Ordnung
+
+- Keine Fremdanfragen in allen Läufen, auch im iframe; vor „Senden“ geht nichts hinaus; localStorage, Cookies, IndexedDB leer.
+- Keine Konsolenfehler im Normalbetrieb (hell, dunkel, 320–1280 px, Tastaturlauf, iframe, sandboxed iframe ohne Speicher).
+- Zurück ×5 und Weiter ×5 ergibt dieselbe Zusammenfassung, ebenso Neuladen.
+- Direktlinks: `?geraet=dq381` und `?geraet=anderes` wählen vor; `?code=P1735` zeigt DQ381/DQ500 zur Auswahl; `?code=P17BF` und `?code=0717` wählen das einzige passende Gerät vor und zeigen den Code als festen Chip „aus Schritt 1“; ungültige Werte werden ignoriert; ein zweiter Direktlink überschreibt einen begonnenen Auftrag nicht.
+- Veraltetes Datum im Speicher (Wunschtermin gestern) führt zu Schritt 4 mit Meldung und lässt sich beheben.
+- Endpunkt 404/500/Zeitüberschreitung/offline/unlesbare Antwort: Fehlermeldung, Ersatzwege, nie „übermittelt“; Doppelklick sendet einmal; erneutes Senden nach Änderung trägt „geänderte Fassung 2“.
+- Tastatur: Reihenfolge und Fokusverhalten wie im Erstbericht, Pfeiltasten in Radiogruppen funktionieren.
+- iframe-Schnipsel aus der README: Höhe passt in allen Schritten bei 1280 und 375 px.
+
+## Nicht prüfbar (unverändert)
+
+Firefox, Safari, echte Mobilgeräte, Papierausdruck, echte Mailprogramme und WhatsApp, Screenreader, Astro-Einbindung nach Weg B, DHL-Angaben, rechtliche und steuerliche Bewertung. Die Seitenfußzeile im Druck (`@page`-Randboxen) funktioniert in Chromium; andere Browser zeigen sie laut README nicht.
+
+Testmaterial der Nachprüfung: derselbe Scratchpad-Ordner, `n1_flow.js`, `n2_money.js`, `n3_small.js`, Ergebnisse in `out2/`.
